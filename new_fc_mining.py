@@ -114,124 +114,72 @@ def check_and_save(signature):
     win.destroy()
 
 
-def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_have,coin_place,trade_type="main"):
-    market = _coin+_money
-    counter=0
-    first_time=True
-    ratios1 = [0.015, 0.025, 0.035,0.05, 0.07]
-    ratios2 = [0.09, 0.11, 0.13, 0.15, 0.17, 0.19, 0.21]
-
+def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_have,coin_place,trade_type="margin"):
+    market = _coin + _money
+    buy_id1 = "-1"
+    buy_id2 = "-1"
+    need_buy = False
+    need_sell =False
+    min_price_tick = 1/(10**api.price_decimal[market])
+    if bidirection==1 or bidirection==3:
+        need_buy = True
+    if bidirection==2 or bidirection==3:
+        need_sell = True
     while True:
         try:
-            time_now = time.time()
-            if first_time:
-                mutex2.acquire()
-                counter = 0
-                first_time = False
-                time.sleep(2)
+            api.cancel_all_pending_order(market,trade_type)
+            start_time = time.time()
+            obj = api.get_depth(market)
+            lastbuy1=list()
+            lastask1=list()
+            lastbuy1.append(obj["bids"][0 * 2])
+            lastask1.append(obj["asks"][0 * 2])
+            while (time.time()-start_time)<300:
                 obj = api.get_depth(market)
-                buy1 = obj["bids"][0 * 2]
-                ask1 = obj["asks"][0 * 2]
-                last_buy_level_1 = buy1 - buy1 * ratios1[0]
-                last_sell_level_1 = ask1 + ask1 * ratios1[0]
-                api.cancel_all_pending_order(market, trade_type)
-                money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
-                if trade_type == "main":
-                    api.cancel_all_pending_order(market, trade_type)
-                    time.sleep(1)
-                    money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
-                elif trade_type == "margin":
-                    api.cancel_all_pending_order(market, trade_type)
-                    time.sleep(5)
-                    money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
-                available_coin = coin / 2
-                available_money = min(money, money_have) / 2
-                coin_for_each_trade = available_coin / len(ratios1)
-                money_for_each_trade = available_money / len(ratios1)
+                buy1 = obj["bids"][0*2]
+                ask1 = obj["asks"][0*2]
+                buy2 = obj["bids"][1*2]
+                ask2 = obj["asks"][1*2]
+                buy3 = obj["bids"][2*2]
+                ask3 = obj["asks"][2*2]
+                buy10 = obj["bids"][9*2]
+                ask10 = obj["asks"][9*2]
+                buy15 = obj["bids"][14*2]
+                ask15 = obj["asks"][14*2]
+                print("buy:",buy1,"sell:",ask1)
+                print("trade_pair:",market)
+                if max(lastask1)>ask15:
+                    lastask1=list()
+                    api.cancel_all_sell_pending_order(market,trade_type)
+                if min(lastbuy1)<buy15:
+                    lastbuy1=list()
+                    api.cancel_all_buy_pending_order(market,trade_type)
 
-                for i, ratio in enumerate(ratios1):
-                    buy_price = buy1 - buy1 * ratio
-                    time.sleep(0.05)
-                    if money_for_each_trade / buy_price > min_size:
-                        api.take_order(market, "buy", buy_price, money_for_each_trade / buy_price, coin_place,
-                                       trade_type)
+                money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin,trade_type)
+                if coin*ask1>money_have/2:
+                    api.take_order(market, "sell", buy1*0.98, coin/2, coin_place,trade_type)
 
-                first_sell_id="-1"
-                if coin_for_each_trade > min_size:
-                    for i, ratio in enumerate(ratios1):
-                        sell_price = ask1 + ask1 * ratio
-                        time.sleep(0.05)
-                        if i == 0:
-                            first_sell_id = api.take_order(market, "sell", sell_price, coin_for_each_trade,
-                                                           coin_place, trade_type)
-                        else:
-                            api.take_order(market, "sell", sell_price, coin_for_each_trade, coin_place, trade_type)
-
-                money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
-
-                available_coin = coin
-
-                coin_for_each_trade = available_coin / len(ratios2)
-                money_for_each_trade = available_money / len(ratios2)
-
-                for ratio in ratios2:
-                    buy_price = buy1 - buy1 * ratio
-                    time.sleep(0.05)
-                    if money_for_each_trade / buy_price > min_size:
-                        api.take_order(market, "buy", buy_price, money_for_each_trade / buy_price, coin_place,
-                                       trade_type)
-                if trade_type == "margin":
-                    money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
-                    buy_price = buy1 - buy1 * ratios1[0]
-                    if money / buy_price > min_size:
-                        api.take_order(market, "buy", buy_price, money / buy_price, coin_place, trade_type)
-
-                if coin_for_each_trade > min_size:
-                    for ratio in ratios2:
-                        sell_price = ask1 + ask1 * ratio
-                        time.sleep(0.05)
-                        api.take_order(market, "sell", sell_price, coin_for_each_trade, coin_place, trade_type)
-
-                money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
-                sell_price = ask1 + ask1 * ratios1[0]
-                if coin > min_size:
-                    api.take_order(market, "sell", sell_price, coin, coin_place, trade_type)
-
-                mutex2.release()
-            elif counter > 300:
-                counter = 0
-                if first_sell_id != "-1":
-                    api.cancel_order(market, first_sell_id)
-                    money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
-                    ask1 = obj["asks"][0 * 2]
-                    last_sell_level_1 = ask1 + ask1 * ratios1[0]
-                    first_sell_id = api.take_order(market, "sell", last_sell_level_1, coin, coin_place, trade_type)
-
-            elif counter <= 300:
-                time.sleep(1)
-                obj = api.get_depth(market)
-                buy1 = obj["bids"][0 * 2]
-                ask1 = obj["asks"][0 * 2]
-                print("ask1:%f" % ask1)
-                print("buy1:%f" % buy1)
-                buy_bound = buy1 - buy1 * 0.01
-                sell_bound = ask1 + ask1 * 0.01
-                if last_buy_level_1 > buy_bound or last_sell_level_1 < sell_bound:
-                    first_time = True
-            print("timer:%d s" % counter)
-            print("trade_pair:" + market)
-            counter += time.time() - time_now
-
-            # api.balance_account("QC","USDT")
+                lastask1.append(ask1)
+                lastbuy1.append(buy1)
+                api.take_order(market, "buy", buy1, 5*min_size, coin_place,trade_type)
+                api.take_order(market, "sell", ask1, 5*min_size, coin_place,trade_type)
+                buy_price = buy1
+                sell_price = ask1
+                for i in range(9):
+                    buy_price = buy_price-min_price_tick
+                    buy_id=api.take_order(market, "buy", buy_price, min_size, coin_place, trade_type)
+                    if buy_id=="-1":
+                        print("break")
+                        break
+                for i in range(9):
+                    sell_price = sell_price+min_price_tick
+                    sell_id=api.take_order(market, "sell", sell_price,min_size, coin_place, trade_type)
+                    if sell_id=="-1":
+                        print("break")
+                        break
         except Exception as ex:
             print(sys.stderr, 'zb request ex: ', ex)
-            try:
-                mutex2.release()
-            except:
-                print("exception")
-            time.sleep(10)
             continue
-
 
 
 
@@ -254,7 +202,7 @@ def load_record():
 
 
 
-def tick(load_access_key, load_access_secret, load_money, load_coin, load_parition, load_total_money, load_bidirection, load_coin_place):
+def tick(load_access_key, load_access_secret, load_money, load_coin, load_parition, load_total_money, load_bidirection, load_coin_place,account_type="main"):
     try:
         mutex2 = threading.Lock()
         access_key = load_access_key.strip()
@@ -288,7 +236,7 @@ def tick(load_access_key, load_access_secret, load_money, load_coin, load_pariti
         print("cancel pending orders completed")
         for i, market in enumerate(markets):
             time.sleep(0.1)
-            thread = threading.Thread(target=buy_main_body,args=(mutex2,api,bidirection,partition,_money,coins[i],min_size[market],money_have/len(markets),coin_place_list[i]))
+            thread = threading.Thread(target=buy_main_body,args=(mutex2,api,bidirection,partition,_money,coins[i],min_size[market],money_have/len(markets),coin_place_list[i],account_type))
             thread.setDaemon(True)
             thread.start()
         time.sleep(3600)
@@ -486,32 +434,23 @@ if __name__ == '__main__':
 
     load_money = "usdt"
     total_load_coin="eos etc ltc bch trx xrp xlm ft zec ada dash bsv iota"
-    load_coin = "eth btc"
+    load_coin = "etc"
     load_parition="2"
     load_bidirection="3"
     load_coin_place="1"
     processes =list()
-    with open(multi_config_file, "r") as f:
-        local_thread=list()
-        for line in f.readlines():
-            apikey = line.split("#")[0]
-            apisecret = line.split("#")[1]
-            total_money = line.split("#")[2]
-            thread = threading.Thread(target=init_sell,args=(apikey,apisecret,total_load_coin,load_money))
-            thread.setDaemon(True)
-            thread.start()
-            local_thread.append(thread)
-        for _th in local_thread:
-            _th.join()
     while True:
         with open(multi_config_file, "r") as f:
             for line in f.readlines():
                 apikey = line.split("#")[0]
                 apisecret = line.split("#")[1]
                 total_money = line.split("#")[2]
+                load_money=line.split("#")[3]
+                load_coin=line.split("#")[4]
+                account_type=line.split("#")[5]
                 p1 = Process(target=tick, args=(
                     apikey, apisecret, load_money, load_coin, load_parition, total_money,
-                    load_bidirection, load_coin_place))
+                    load_bidirection, load_coin_place,account_type))
                 p1.daemon = True
                 p1.start()
                 processes.append(p1)

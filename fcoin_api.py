@@ -8,6 +8,7 @@ HTMRK = 'https://%s/v2/market/'
 HTPBL = 'https://%s/v2/public/'
 HTORD = 'https://%s/v2/orders/'
 HTACT = 'https://%s/v2/accounts/'
+HBROK = 'https://%s/v2/broker/leveraged_accounts/'
 WS = 'wss://%S/v2/ws/'
 
 ST = 'server-time'
@@ -38,6 +39,7 @@ class DataAPI():
         self.http_market = HTMRK % SERVER
         self.http_orders = HTORD % SERVER
         self.http_account = HTACT % SERVER
+        self.http_leverage = HBROK % SERVER
         self.key = key
         self.secret = bytes(secret,encoding = "utf8")
     def authorize(self, key='', secret=''):
@@ -68,11 +70,10 @@ class DataAPI():
             'FC-ACCESS-KEY': self.key,
             'FC-ACCESS-SIGNATURE': signature,
             'FC-ACCESS-TIMESTAMP': timestamp
+
         }
         #print(url)
-        #url= url.replace("fcoin","ifukang",1)
         url = url.replace("com", "pro", 1)
-
         #print(url)
 
         try:
@@ -81,7 +82,7 @@ class DataAPI():
             r.raise_for_status()
         except Exception as err:
             print(err)
-            return None
+            print(r.text)
         if r.status_code == 200:
             return r.json()
 
@@ -90,7 +91,6 @@ class DataAPI():
 
         #print(url)
         url = url.replace("com", "pro", 1)
-
         #print(url)
         try:
             r = requests.request(method, url, params=params,timeout=5)
@@ -98,7 +98,6 @@ class DataAPI():
             r.raise_for_status()
         except Exception as err:
             print(err)
-            return None
         if r.status_code == 200:
             return r.json()
 
@@ -136,6 +135,12 @@ class DataAPI():
         """get user balance"""
         return self.signed_request(GET, self.http_account + 'balance')
 
+
+    def get_leverage_balance(self):
+        """get user balance"""
+        return self.signed_request(GET, self.http_leverage )
+
+
     def list_orders(self, **payload):
         """get orders"""
         return self.signed_request(GET, self.http_orders, **payload)
@@ -144,13 +149,21 @@ class DataAPI():
         """create order"""
         return self.signed_request(POST, self.http_orders, **payload)
 
-    def buy(self, symbol, price, amount,exchange="main"):
+    def buy(self, symbol, price, amount,exchange="main",account_type=None):
         """buy someting"""
-        return self.create_order(symbol=symbol, side='buy', type='limit', price=str(price), amount=amount,exchange=exchange)
+        if account_type=="margin":
+            return self.create_order(symbol=symbol, side='buy', type='limit', price=str(price), amount=amount,exchange=exchange,account_type=account_type)
+        else:
+            return self.create_order(symbol=symbol, side='buy', type='limit', price=str(price), amount=amount,
+                                     exchange=exchange)
 
-    def sell(self, symbol, price, amount,exchange="main"):
+    def sell(self, symbol, price, amount,exchange="main",account_type=None):
         """sell someting"""
-        return self.create_order(symbol=symbol, side='sell', type='limit', price=str(price), amount=amount,exchange=exchange)
+        if account_type == "margin":
+            return self.create_order(symbol=symbol, side='sell', type='limit', price=str(price), amount=amount,exchange=exchange,account_type=account_type)
+        else:
+            return self.create_order(symbol=symbol, side='sell', type='limit', price=str(price), amount=amount,
+                                     exchange=exchange)
 
     def get_order(self, order_id):
         """get specfic order"""
@@ -158,9 +171,7 @@ class DataAPI():
 
     def cancel_order(self, order_id):
         """cancel specfic order"""
-
         return self.signed_request(POST, self.http_orders + '%s/submit-cancel' % order_id)
-
 
     def order_result(self, order_id):
         """check order result"""
@@ -210,7 +221,6 @@ class fcoin_api:
             self.limit_amount_min[coin+money] = float(obj1["limit_amount_min"])
 
         return self.limit_amount_min
-
     def get_depth(self, market):
         # try:
         obj = self._api.get_depth("L20",market)
@@ -297,21 +307,6 @@ class fcoin_api:
         sell1 = obj["asks"][0]
         return buy1, sell1
 
-
-    def get_level_one_amount(self,market,side,obj=None):
-        if not obj:
-            obj = self.get_depth(market)
-        amount = 0
-        for i in range (1,5):
-            amount+=float(obj[side][i*2+1])
-        return amount
-    def get_level_two_amount(self,market,side):
-        obj = self.get_depth(market)
-        amount = 0
-        for i in range (5,15):
-            amount+=float(obj[side][i*2+1])
-        return amount
-
     def cancel_all_pending_order(self,market,account_type="main"):
         if account_type=="main":
             obj = self._api.list_orders(symbol=market,states="submitted,partial_filled")
@@ -324,19 +319,72 @@ class fcoin_api:
             #time.sleep(0.5)
             self.cancel_order(market,id)
 
-    def cancel_all_buy_pending_order(self,market):
-        obj = self._api.list_orders(symbol=market,states="submitted,partial_filled")
+    def list_all_orders(self,market,account_type="main"):
+        if account_type=="main":
+            obj = self._api.list_orders(symbol=market,states="submitted,partial_filled,partial_canceled,filled,canceled")
+        else:
+            obj = self._api.list_orders(symbol=market, states="submitted,partial_filled,partial_canceled,filled,canceled",account_type=account_type)
+        print(obj)
+        obj = obj["data"]
+        return obj
+
+    def cancel_all_buy_pending_order(self,market,account_type="main"):
+        if account_type=="main":
+            obj = self._api.list_orders(symbol=market,states="submitted,partial_filled")
+        else:
+            obj = self._api.list_orders(symbol=market, states="submitted,partial_filled",account_type=account_type)
+        print(obj)
         obj = obj["data"]
         for item in obj:
             if item["side"]=="buy":
                 self.cancel_order(market,item["id"])
 
-    def cancel_all_sell_pending_order(self,market):
-        obj = self._api.list_orders(symbol=market,states="submitted,partial_filled")
+    def cancel_all_sell_pending_order(self,market,account_type="main"):
+        if account_type=="main":
+            obj = self._api.list_orders(symbol=market,states="submitted,partial_filled")
+        else:
+            obj = self._api.list_orders(symbol=market, states="submitted,partial_filled",account_type=account_type)
+        print(obj)
         obj = obj["data"]
         for item in obj:
             if item["side"]=="sell":
                 self.cancel_order(market,item["id"])
+
+
+    def cancel_all_pending_order_larger_1_hour(self,market):
+        obj = self._api.list_orders(symbol=market,states="submitted,partial_filled")
+        print(obj)
+        obj = obj["data"]
+        obj1 = self.get_depth(market)
+        ask1 = obj1["asks"][0 * 2]
+        buy1 = obj1["bids"][0 * 2]
+        current_time = time.time()
+        for item in obj:
+            created_time=int(item["created_at"])
+            print(created_time)
+            if current_time - int(item["created_at"])>3600:
+                side =item["side"]
+                if (side=="buy" and item["price"]<buy1-buy1*0.2)or(side=="sell" and item["price"]>ask1+ask1*0.2):
+                    time.sleep(0.1)
+                    self.cancel_order(market,item["id"])
+    def cancel_all_pending_order_larger_5_min(self,market):
+        obj = self._api.list_orders(symbol=market,states="submitted,partial_filled")
+        print(obj)
+        obj = obj["data"]
+        obj1 = self.get_depth(market)
+        ask1 = obj1["asks"][0 * 2]
+        buy1 = obj1["bids"][0 * 2]
+        current_time = time.time()
+        for item in obj:
+            created_time=int(item["created_at"])
+            print(created_time)
+            if current_time - int(item["created_at"])>300:
+                side =item["side"]
+                if (side=="buy" and item["price"]<buy1-buy1*0.2)or(side=="sell" and item["price"]>ask1+ask1*0.2):
+                    time.sleep(0.1)
+                    self.cancel_order(market,item["id"])
+
+
 
     def get_pending_money(self,market):
         obj = self._api.list_orders(symbol=market,states="submitted,partial_filled")
@@ -347,15 +395,10 @@ class fcoin_api:
         return money
 
 
-
     def cancel_order(self, market, id):
         if id=="-1":
             return None
-        try:
-            obj = self._api.cancel_order(id)
-        except Exception as ex:
-            print(sys.stderr, 'in cancel order: ', ex)
-            pass
+        obj = self._api.cancel_order(id)
         return obj
 
 
@@ -534,3 +577,7 @@ class fcoin_api:
         # print("index:%d" % index)
         # print("coin_should_have:%f" % self.cell_money[index])
         return 5*(self.cell_step[index])
+
+
+from tkinter import *
+

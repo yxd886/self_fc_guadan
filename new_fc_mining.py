@@ -154,11 +154,6 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                 if min(lastbuy1)<buy15:
                     lastbuy1=list()
                     api.cancel_all_buy_pending_order(market,trade_type)
-
-                money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin,trade_type)
-                if coin*ask1>money_have/2:
-                    api.take_order(market, "sell", buy1*0.98, coin/2, coin_place,trade_type)
-
                 lastask1.append(ask1)
                 lastbuy1.append(buy1)
                 api.take_order(market, "buy", buy1, 5*min_size, coin_place,trade_type)

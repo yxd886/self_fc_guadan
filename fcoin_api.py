@@ -579,5 +579,3 @@ class fcoin_api:
         return 5*(self.cell_step[index])
 
 
-from tkinter import *
-

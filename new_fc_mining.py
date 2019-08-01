@@ -116,7 +116,7 @@ def check_and_save(signature):
 
 def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_have,coin_place,trade_type="margin"):
     need_balance = True
-    cell_num = 40
+    cell_num = 20
     market = _coin + _money
     stamp = int(time.time())
     time_local = time.localtime(stamp)
@@ -214,29 +214,35 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                 else:
                     buy_step = min_size
             print("buy_step:", buy_step)
-
+            _counter=0
             for price in new_list:
                 if price < ask1:
                     size = buy_step
                     id = api.take_order(market, "buy", price, size, coin_place,trade_type)
                     if id != "-1":
+                        _counter = 0
                         buy_order_list.append(
                             {"id": id, "pair": (market, "sell", price + min_price_tick, size, coin_place),
                              "self": (market, "buy", price, size, coin_place)})
                     else:
-                        break
-
+                        _counter +=1
+                        if _counter>=3:
+                            break
+            _counter = 0
             if gap < cell_num:
                 for price in price_list[gap:]:
                     if price > ask1:
                         size = sell_step
                         id = api.take_order(market, "sell", price, size, coin_place,trade_type)
                         if id != "-1":
+                            _counter = 0
                             sell_order_list.append(
                                 {"id": id, "pair": (market, "buy", price - min_price_tick, size, coin_place),
                                  "self": (market, "sell", price, size, coin_place)})
                         else:
-                            break
+                            _counter += 1
+                            if _counter >= 3:
+                                break
 
 
 

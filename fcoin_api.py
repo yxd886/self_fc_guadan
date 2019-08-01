@@ -242,6 +242,7 @@ class fcoin_api:
         while True:
             size = self.get_two_float(size,self.amount_decimal[market])
             price=self.get_two_float(price,self.price_decimal[market])
+            print(direction)
             print(size)
             print(price)
             if direction == "buy":

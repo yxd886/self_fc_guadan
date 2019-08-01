@@ -388,7 +388,7 @@ def tick(load_access_key, load_access_secret, load_money, load_coin, load_pariti
         print("start cancel existing pending orders")
         for market in markets:
             time.sleep(0.1)
-            api.cancel_all_pending_order(market)
+            api.cancel_all_pending_order(market,account_type)
         print("cancel pending orders completed")
         for i, market in enumerate(markets):
             time.sleep(0.1)
@@ -605,7 +605,7 @@ if __name__ == '__main__':
                 load_coin=line.split("#")[4]
                 account_type=line.split("#")[5]
 
-                init_sell(apikey,apisecret,total_load_coin,load_money,account_type)
+                #init_sell(apikey,apisecret,total_load_coin,load_money,account_type)
 
                 p1 = Process(target=tick, args=(
                     apikey, apisecret, load_money, load_coin, load_parition, total_money,

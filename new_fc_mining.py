@@ -115,71 +115,224 @@ def check_and_save(signature):
 
 
 def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_have,coin_place,trade_type="margin"):
+    need_balance = True
+    cell_num = 40
     market = _coin + _money
-    buy_id1 = "-1"
-    buy_id2 = "-1"
-    need_buy = False
-    need_sell =False
-    min_price_tick = 1/(10**api.price_decimal[market])
-    if bidirection==1 or bidirection==3:
-        need_buy = True
-    if bidirection==2 or bidirection==3:
-        need_sell = True
+    stamp = int(time.time())
+    time_local = time.localtime(stamp)
+    new_hour = int(time_local.tm_hour)
+    min_price_tick = 1 / (10 ** api.price_decimal[market])
+    if trade_type=="margin":
+        money_have = sys.maxsize
+    if new_hour == 0:
+        daily_restart = True
+    else:
+        daily_restart = False
     while True:
         try:
+
+            print("in init market")
+            price_list = list()
+            sell_order_list = list()
+            buy_order_list = list()
+            tmp_buy_order_list = list()
+            tmp_sell_order_list = list()
+
             api.cancel_all_pending_order(market,trade_type)
-            start_time = time.time()
+
             obj = api.get_depth(market)
-            lastbuy1=list()
-            lastask1=list()
-            lastbuy1.append(obj["bids"][0 * 2])
-            lastask1.append(obj["asks"][0 * 2])
-            while (time.time()-start_time)<300:
-                obj = api.get_depth(market)
-                buy1 = obj["bids"][0*2]
-                ask1 = obj["asks"][0*2]
-                buy2 = obj["bids"][1*2]
-                ask2 = obj["asks"][1*2]
-                buy3 = obj["bids"][2*2]
-                ask3 = obj["asks"][2*2]
-                buy10 = obj["bids"][9*2]
-                ask10 = obj["asks"][9*2]
-                buy15 = obj["bids"][14*2]
-                ask15 = obj["asks"][14*2]
-                print("buy:",buy1,"sell:",ask1)
-                print("trade_pair:",market)
-                if max(lastask1)>ask15:
-                    lastask1=list()
-                    api.cancel_all_sell_pending_order(market,trade_type)
-                if min(lastbuy1)<buy15:
-                    lastbuy1=list()
-                    api.cancel_all_buy_pending_order(market,trade_type)
-                lastask1.append(ask1)
-                lastbuy1.append(buy1)
-                api.take_order(market, "buy", buy1, 5*min_size, coin_place,trade_type)
-                api.take_order(market, "sell", ask1, 5*min_size, coin_place,trade_type)
-                buy_price = buy1
-                sell_price = ask1
-                for i in range(9):
-                    buy_price = buy_price-min_price_tick
-                    lastbuy1.append(buy_price)
-                    buy_id=api.take_order(market, "buy", buy_price, min_size, coin_place, trade_type)
-                    if buy_id=="-1":
-                        print("break")
+            ask1 = obj["asks"][0 * 2]
+            buy1 = obj["bids"][0 * 2]
+
+            print("trade_pair:%s" % (market))
+
+            price_step = min_price_tick
+            price = buy1 - (cell_num / 2) * min_price_tick
+
+            money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin,trade_type)
+            remain_coin = coin
+            for i in range(cell_num):
+                price_list.append(price)
+                price += price_step
+            if max(price_list) < ask1:
+                gap = 100
+            elif min(price_list) > ask1:
+                gap = 0
+            else:
+                gap = 99
+                for i in range(len(price_list) - 1):
+                    if price_list[i] < ask1 and price_list[i + 1] >= ask1:
+                        gap = i
                         break
-                for i in range(9):
-                    sell_price = sell_price+min_price_tick
-                    lastask1.append(sell_price)
-                    sell_id=api.take_order(market, "sell", sell_price,min_size, coin_place, trade_type)
-                    if sell_id=="-1":
-                        print("break")
+                gap += 1
+            print("gap:%d" % gap)
+
+            coin_need = coin
+            min_coin_need = len(price_list[gap:]) * min_size
+            min_money_need_for_sell = 0
+            sell_step = 0
+
+            if gap < cell_num:
+
+                for price in price_list[gap:]:
+                    min_money_need_for_sell += price * min_size
+
+                money_for_sell = (len(price_list[gap:]) / cell_num) * min(money_have, money + coin * buy1)
+
+                coin_need = (
+                                        money_for_sell / min_money_need_for_sell) * min_coin_need if min_money_need_for_sell > 0 else 0
+                print("coin need:", coin_need)
+
+            if need_balance:
+                if remain_coin - coin_need > 2 * min_size:
+                    api.take_order(market, "sell", buy1 - buy1 * 0.01, remain_coin - coin_need - min_size, coin_place,trade_type)
+                elif remain_coin < coin_need:
+                    api.take_order(market, "buy", ask1 + ask1 * 0.01, coin_need - remain_coin + min_size, coin_place,trade_type)
+            time.sleep(1)
+
+            money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin,trade_type)
+            sell_step = max((coin / len(price_list[gap:])) + 1 / (10 ** api.amount_decimal[market]), min_size)
+
+            print("sell step:", sell_step)
+
+            new_list = list()
+            buy_step = 0
+
+            if gap > 0:
+                new_list = price_list[:gap]
+                new_list.reverse()
+                min_money_need_for_buy = 0
+                # print(new_list)
+                money_for_buy = (len(new_list) / cell_num) * min(money_have, money + coin * buy1)
+                print(money_for_buy)
+                for price in new_list:
+                    min_money_need_for_buy += price * min_size
+
+                if money_for_buy >= min_money_need_for_buy:
+                    buy_step = (money_for_buy / min_money_need_for_buy) * min_size + 1 / (
+                                10 ** api.amount_decimal[market])
+                else:
+                    buy_step = min_size
+            print("buy_step:", buy_step)
+
+            for price in new_list:
+                if price < ask1:
+                    size = buy_step
+                    id = api.take_order(market, "buy", price, size, coin_place,trade_type)
+                    if id != "-1":
+                        buy_order_list.append(
+                            {"id": id, "pair": (market, "sell", price + min_price_tick, size, coin_place),
+                             "self": (market, "buy", price, size, coin_place)})
+                    else:
                         break
+
+            if gap < cell_num:
+                for price in price_list[gap:]:
+                    if price > ask1:
+                        size = sell_step
+                        id = api.take_order(market, "sell", price, size, coin_place,trade_type)
+                        if id != "-1":
+                            sell_order_list.append(
+                                {"id": id, "pair": (market, "buy", price - min_price_tick, size, coin_place),
+                                 "self": (market, "sell", price, size, coin_place)})
+                        else:
+                            break
+
+
+
         except Exception as ex:
-            print(sys.stderr, 'zb request ex: ', ex)
+            print(sys.stderr, 'in init: ', ex)
+            print("exception")
             continue
+        _start_time = time.time()
+        while True:
+            try:
+
+                obj = api.get_depth(market)
+                ask1 = obj["asks"][0 * 2]
+                buy1 = obj["bids"][0 * 2]
+                print("current ask:%f" % ask1)
+                print("current buy:%f" % buy1)
+                print("trade_pair:%s" % market)
+                print("time spent:%f seconds" % (time.time() - _start_time))
+                if (time.time() - _start_time)>300:
+                    break
+                print("len of buy_order_list:", len(buy_order_list))
+                if len(buy_order_list) > 0:
+                    buy_item = buy_order_list[0]
+                    buy_id_to_monitor = buy_item["id"]
+                    time.sleep(1)
+                    if api.is_order_complete(market, buy_id_to_monitor):
+                        _market = buy_item["pair"][0]
+                        _direction = buy_item["pair"][1]
+                        _price = buy_item["pair"][2]
+                        _size = buy_item["pair"][3]
+                        _coin_place = buy_item["pair"][4]
+                        id = api.take_order(_market, _direction, _price, _size, _coin_place,trade_type)
+                        if id != "-1":
+                            tmp_sell_order_list.insert(0,
+                                                       {"id": id, "pair": buy_item["self"], "self": buy_item["pair"]})
+                        buy_order_list.remove(buy_item)
+                else:
+                    print("break")
+                    break
+                print("len of sell order list:", len(sell_order_list))
+                if len(sell_order_list) > 0:
+                    sell_item = sell_order_list[0]
+                    sell_id_to_monitor = sell_item["id"]
+                    time.sleep(1)
+                    if api.is_order_complete(market, sell_id_to_monitor):
+                        _market = sell_item["pair"][0]
+                        _direction = sell_item["pair"][1]
+                        _price = sell_item["pair"][2]
+                        _size = sell_item["pair"][3]
+                        _coin_place = sell_item["pair"][4]
+                        id = api.take_order(_market, _direction, _price, _size, _coin_place,trade_type)
+                        if id != "-1":
+                            tmp_buy_order_list.insert(0,
+                                                      {"id": id, "pair": sell_item["self"], "self": sell_item["pair"]})
+                        sell_order_list.remove(sell_item)
+                else:
+                    print("break")
+                    break
+
+                if len(tmp_buy_order_list) > 0:
+                    tmp_buy_item = tmp_buy_order_list[0]
+                    tmp_buy_id = tmp_buy_item["id"]
+                    time.sleep(1)
+                    if api.is_order_complete(market, tmp_buy_id):
+                        _market = tmp_buy_item["pair"][0]
+                        _direction = tmp_buy_item["pair"][1]
+                        _price = tmp_buy_item["pair"][2]
+                        _size = tmp_buy_item["pair"][3]
+                        _coin_place = tmp_buy_item["pair"][4]
+                        id = api.take_order(_market, _direction, _price, _size, _coin_place,trade_type)
+                        if id != "-1":
+                            sell_order_list.insert(0, {"id": id, "pair": tmp_buy_item["self"],
+                                                       "self": tmp_buy_item["pair"]})
+                        tmp_buy_order_list.remove(tmp_buy_item)
+
+                if len(tmp_sell_order_list) > 0:
+                    tmp_sell_item = tmp_sell_order_list[0]
+                    tmp_sell_id = tmp_sell_item["id"]
+                    time.sleep(1)
+                    if api.is_order_complete(market, tmp_sell_id):
+                        _market = tmp_sell_item["pair"][0]
+                        _direction = tmp_sell_item["pair"][1]
+                        _price = tmp_sell_item["pair"][2]
+                        _size = tmp_sell_item["pair"][3]
+                        _coin_place = tmp_sell_item["pair"][4]
+                        id = api.take_order(_market, _direction, _price, _size, _coin_place,trade_type)
+                        if id != "-1":
+                            buy_order_list.insert(0, {"id": id, "pair": tmp_sell_item["self"],
+                                                      "self": tmp_sell_item["pair"]})
+                        tmp_sell_order_list.remove(tmp_sell_item)
 
 
-
+            except Exception as ex:
+                print(sys.stderr, 'in monitor: ', ex)
+                print("restart in 5 seconds......")
+                time.sleep(5)
 
 def load_record():
     global load_access_key,load_access_secret,load_money,load_coin,load_parition,load_total_money,load_bidirection,load_coin_place
@@ -362,7 +515,7 @@ def get_transaction():
     button = tkinter.Button(win, text="确定", command=check_status)  # 收到消息执行这个函数
     button.pack()  # 加载到窗体，
 
-def init_sell(apikey,apisecret,total_load_coin,load_money):
+def init_sell(apikey,apisecret,total_load_coin,load_money,trade_type):
     access_key = apikey.strip()
     access_secret = apisecret.strip()
     _money =load_money.strip().lower()
@@ -379,15 +532,15 @@ def init_sell(apikey,apisecret,total_load_coin,load_money):
     min_size=api.set_demical(_money, coins)
     for market in markets:
         print("cancel"+market)
-        api.cancel_all_pending_order(market)
+        api.cancel_all_pending_order(market,trade_type)
         time.sleep(0.5)
     for _coin in coins:
         market=_coin+_money
         obj = api.get_depth(market)
         buy13 = obj["bids"][12 * 2]
-        money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin)
+        money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin,trade_type)
         if coin>min_size[market]:
-            api.take_order(market, "sell", buy13, coin, coin_place)
+            api.take_order(market, "sell", buy13, coin, coin_place,trade_type)
             time.sleep(0.5)
 
 if __name__ == '__main__':
@@ -430,8 +583,8 @@ if __name__ == '__main__':
 
 
     load_money = "usdt"
-    total_load_coin="eos etc ltc bch trx xrp xlm ft zec ada dash bsv iota"
-    load_coin = "etc"
+    total_load_coin="ltc eos btc eth xrp bch"
+    load_coin = "ltc"
     load_parition="2"
     load_bidirection="3"
     load_coin_place="1"
@@ -445,6 +598,9 @@ if __name__ == '__main__':
                 load_money=line.split("#")[3]
                 load_coin=line.split("#")[4]
                 account_type=line.split("#")[5]
+
+                init_sell(apikey,apisecret,total_load_coin,load_money,account_type)
+
                 p1 = Process(target=tick, args=(
                     apikey, apisecret, load_money, load_coin, load_parition, total_money,
                     load_bidirection, load_coin_place,account_type))

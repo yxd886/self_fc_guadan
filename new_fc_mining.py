@@ -138,7 +138,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
             ask1 = obj["asks"][0 * 2]
             money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
             real_buy_step_size = max((min(money_have,money)/ask1)/10,min_size)
-            real_sell_step_size = max(coin/buy1/10,min_size)
+            real_sell_step_size = max(coin/10,min_size)
 
             # if need_buy:
             #   api.take_order(market, "buy", buy1,min_size,coin_place)

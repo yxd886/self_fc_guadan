@@ -510,7 +510,7 @@ if __name__ == '__main__':
                 total_money = line.split("#")[2]
                 load_money=line.split("#")[3]
                 load_coin=line.split("#")[4]
-                account_type=line.split("#")[5]
+                account_type=line.split("#")[5].strip()
 
                 #init_sell(apikey,apisecret,total_load_coin,load_money,account_type)
 

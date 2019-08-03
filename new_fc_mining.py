@@ -137,17 +137,18 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
             buy1 = obj["bids"][0 * 2]
             ask1 = obj["asks"][0 * 2]
             money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
-            real_step_size = max((min(money_have,money)/ask1)/10,min_size)
+            real_buy_step_size = max((min(money_have,money)/ask1)/10,min_size)
+            real_sell_step_size = max(coin/buy1/10,min_size)
 
             # if need_buy:
             #   api.take_order(market, "buy", buy1,min_size,coin_place)
             # if need_sell:
             #    api.take_order(market, "sell", ask1, min_size, coin_place)
             if need_buy:
-                api.take_order(market, "buy", buy1, real_step_size, coin_place,trade_type)
+                api.take_order(market, "buy", buy1, real_buy_step_size, coin_place,trade_type)
                 time.sleep(0.1)
             if need_sell:
-                api.take_order(market, "sell", ask1, real_step_size, coin_place,trade_type)
+                api.take_order(market, "sell", ask1, real_sell_step_size, coin_place,trade_type)
                 time.sleep(0.1)
 
             buy_price = buy1 - 8 * min_price_tick
@@ -156,9 +157,9 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                 buy_price = buy_price + min_price_tick
                 sell_price = sell_price -  min_price_tick
                 if need_buy:
-                    api.take_order(market, "buy", buy_price, real_step_size, coin_place,trade_type)
+                    api.take_order(market, "buy", buy_price, real_buy_step_size, coin_place,trade_type)
                 if need_sell:
-                    api.take_order(market, "sell", sell_price, real_step_size, coin_place,trade_type)
+                    api.take_order(market, "sell", sell_price, real_sell_step_size, coin_place,trade_type)
             buy_price = buy1 - 9 * min_price_tick
             sell_price = ask1 + 9 * min_price_tick
             money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin,trade_type)

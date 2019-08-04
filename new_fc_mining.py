@@ -128,27 +128,22 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
         need_buy = True
     if bidirection == 2 or bidirection == 3:
         need_sell = True
-    api.cancel_all_pending_order(market, trade_type)
-    time.sleep(2)
-    money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
-
-    obj = api.get_depth(market)
-    buy1 = obj["bids"][0 * 2]
-    ask1 = obj["asks"][0 * 2]
-    if trade_type=="margin":
-        if coin/(money/ask1+coin)>0.53:
-            numb = coin-((money/ask1+coin)/2)
-            api.take_order(market, "sell", buy1*0.99, numb, coin_place, trade_type)
-        elif coin/(money/ask1+coin)<0.47:
-            numb = (money / ask1) - ((money / ask1 + coin) / 2)
-            api.take_order(market, "buy", ask1 * 1.01, numb, coin_place, trade_type)
-
     while True:
         try:
             api.cancel_all_pending_order(market,trade_type)
             time.sleep(2)
+            if trade_type == "margin":
+                money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
+                obj = api.get_depth(market)
+                buy1 = obj["bids"][0 * 2]
+                ask1 = obj["asks"][0 * 2]
+                if coin / (money / ask1 + coin) > 0.53:
+                    numb = coin - ((money / ask1 + coin) / 2)
+                    api.take_order(market, "sell", buy1 * 0.99, numb, coin_place, trade_type)
+                elif coin / (money / ask1 + coin) < 0.47:
+                    numb = (money / ask1) - ((money / ask1 + coin) / 2)
+                    api.take_order(market, "buy", ask1 * 1.01, numb, coin_place, trade_type)
             money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
-
             obj = api.get_depth(market)
             buy1 = obj["bids"][0 * 2]
             ask1 = obj["asks"][0 * 2]

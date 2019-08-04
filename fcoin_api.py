@@ -271,6 +271,8 @@ class fcoin_api:
         return obj["data"]
 
     def is_order_complete(self, market, id):
+        if id=="-1":
+            return True
         obj = self.get_order_info(market, id)
         if obj["state"]=="filled" or "canceled" in obj["state"]:
             return True

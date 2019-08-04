@@ -131,119 +131,147 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
     while True:
         try:
             api.cancel_all_pending_order(market,trade_type)
+            time.sleep(2)
+            money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
             counter = 0
             current_time = time.time()
             obj = api.get_depth(market)
             buy1 = obj["bids"][0 * 2]
             ask1 = obj["asks"][0 * 2]
-            money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
-            real_buy_step_size = max((min(money_have,money)/ask1)/10,min_size)
-            real_sell_step_size = max(coin/10,min_size)
+            buy_amount=0
+            sell_amount=0
+            for i in range(10):
+                buy_amount += obj["bids"][i * 1]
+                sell_amount+= obj["asks"][i * 1]
 
-            # if need_buy:
-            #   api.take_order(market, "buy", buy1,min_size,coin_place)
-            # if need_sell:
-            #    api.take_order(market, "sell", ask1, min_size, coin_place)
-            if need_buy:
-                api.take_order(market, "buy", buy1, real_buy_step_size, coin_place,trade_type)
-                time.sleep(0.1)
-            if need_sell:
-                api.take_order(market, "sell", ask1, real_sell_step_size, coin_place,trade_type)
-                time.sleep(0.1)
+            print("buy_amount/sell_amount:",buy_amount/sell_amount)
 
-            buy_price = buy1 - 8 * min_price_tick
-            sell_price = ask1 + 8 * min_price_tick
-            for i in range(8):
-                buy_price = buy_price + min_price_tick
-                sell_price = sell_price -  min_price_tick
+            if buy_amount/sell_amount>2:
+                buy_price = ask1+9*min_price_tick
+                number = money/buy_price
+                id=api.take_order(market, "buy", buy_price,number, coin_place, trade_type)
+                if id=="-1":
+                    continue
+                obj = api.get_order_info(market,id)
+                filled_amount = float(obj.get("filled_amount",0))
+                executed_value = float(obj.get("executed_value",0))
+                if filled_amount==0:
+                    continue
+                average_price = executed_value/filled_amount
+                money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
+                api.take_order(market, "sell", average_price, coin, coin_place, trade_type)
+            elif buy_amount/sell_amount<0.5:
+                sell_price = buy1-9*min_price_tick
+                api.take_order(market, "sell", sell_price, coin, coin_place, trade_type)
+
+            else:
+                real_buy_step_size = max((min(money_have,money)/ask1)/10,min_size)
+                real_sell_step_size = max(coin/10,min_size)
+
+                # if need_buy:
+                #   api.take_order(market, "buy", buy1,min_size,coin_place)
+                # if need_sell:
+                #    api.take_order(market, "sell", ask1, min_size, coin_place)
                 if need_buy:
-                    api.take_order(market, "buy", buy_price, real_buy_step_size, coin_place,trade_type)
+                    api.take_order(market, "buy", buy1, real_buy_step_size, coin_place,trade_type)
+                    time.sleep(0.1)
                 if need_sell:
-                    api.take_order(market, "sell", sell_price, real_sell_step_size, coin_place,trade_type)
-            buy_price = buy1 - 9 * min_price_tick
-            sell_price = ask1 + 9 * min_price_tick
-            money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin,trade_type)
+                    api.take_order(market, "sell", ask1, real_sell_step_size, coin_place,trade_type)
+                    time.sleep(0.1)
 
-            if need_buy:
-                current_money_have = money_have - coin * buy1
-                available_coin_space = current_money_have / buy_price
-                money1 = min(money_have, money)
-                coin1_can_buy = money1 / buy_price
-                print("level 1 coin can buy:%f" % coin1_can_buy)
-                print("available_coin1_space:%f" % available_coin_space)
-                if available_coin_space > min_size and coin1_can_buy > min_size:
-                    print("take buy order 1")
-                    buy_id1 = api.take_order(market, "buy", buy_price,
-                                             (min(available_coin_space, coin1_can_buy)),
-                                             coin_place,trade_type)
-            if need_sell:
-                coin1_can_sell = coin
-                if coin1_can_sell > min_size:
-                    sell_id_1 = api.take_order(market, "sell", sell_price, coin1_can_sell, coin_place,trade_type)
+                buy_price = buy1 - 8 * min_price_tick
+                sell_price = ask1 + 8 * min_price_tick
+                for i in range(8):
+                    buy_price = buy_price + min_price_tick
+                    sell_price = sell_price -  min_price_tick
+                    if need_buy:
+                        api.take_order(market, "buy", buy_price, real_buy_step_size, coin_place,trade_type)
+                    if need_sell:
+                        api.take_order(market, "sell", sell_price, real_sell_step_size, coin_place,trade_type)
+                buy_price = buy1 - 9 * min_price_tick
+                sell_price = ask1 + 9 * min_price_tick
+                money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin,trade_type)
 
-            # api.balance_account("QC","USDT")
+                if need_buy:
+                    current_money_have = money_have - coin * buy1
+                    available_coin_space = current_money_have / buy_price
+                    money1 = min(money_have, money)
+                    coin1_can_buy = money1 / buy_price
+                    print("level 1 coin can buy:%f" % coin1_can_buy)
+                    print("available_coin1_space:%f" % available_coin_space)
+                    if available_coin_space > min_size and coin1_can_buy > min_size:
+                        print("take buy order 1")
+                        buy_id1 = api.take_order(market, "buy", buy_price,
+                                                 (min(available_coin_space, coin1_can_buy)),
+                                                 coin_place,trade_type)
+                if need_sell:
+                    coin1_can_sell = coin
+                    if coin1_can_sell > min_size:
+                        sell_id_1 = api.take_order(market, "sell", sell_price, coin1_can_sell, coin_place,trade_type)
+
+                # api.balance_account("QC","USDT")
+                interval = 0.1
+                while True:
+                    try:
+                        print("counter:%d" % counter)
+                        obj = api.get_depth(market)
+                        buy7 = obj["bids"][6 * 2]
+                        buy15 = obj["bids"][14 * 2]
+                        buy4 = obj["bids"][3 * 2]
+                        buy11 = obj["bids"][10 * 2]
+                        buy10 = obj["bids"][9 * 2]
+                        ask7 = obj["asks"][6 * 2]
+                        ask15 = obj["asks"][14 * 2]
+                        ask4 = obj["asks"][3 * 2]
+                        ask11 = obj["asks"][10 * 2]
+                        ask10 = obj["asks"][9 * 2]
+
+
+                        buy_upper1 = buy7
+                        buy_lower1 = buy15
+                        sell_upper1 = ask15
+                        sell_lower1 = ask7
+
+                        print("buy4:%f" % buy4)
+                        print("buy10:%f" % buy10)
+                        print("sell4:%f" % ask4)
+                        print("sell10:%f" % ask10)
+                        print("trade pair:" + market)
+                        restart = False
+
+                        if counter > 300:
+                            restart = True
+                            print("cancel reason 1")
+                        elif need_buy and (buy_price > buy_upper1):
+                            restart = True
+                            print("cancel reason 3")
+                        elif need_buy and (buy_price < buy_lower1):
+                            restart = True
+                            print("cancel reason 4")
+                        elif need_sell and (sell_price > sell_upper1):
+                            restart = True
+                            print("cancel reason 5")
+                        elif need_sell and (sell_price < sell_lower1):
+                            restart = True
+                            print("cancel reason 6")
+
+                        counter = time.time() - current_time
+                        time.sleep(interval)
+                        if restart:
+                            buy_id1 = "-1"
+                            buy_id2 = "-1"
+                            api.cancel_all_pending_order(market,trade_type)
+                            time.sleep(0.5)
+                            break
+
+                    except Exception as ex:
+                        print(sys.stderr, 'zb request ex: ', ex)
+                        buy_id1 = "-1"
+                        buy_id2 = "-1"
+                        break
         except Exception as ex:
             print(sys.stderr, 'zb request ex: ', ex)
             continue
-        interval = 0.1
-        while True:
-            try:
-                print("counter:%d" % counter)
-                obj = api.get_depth(market)
-                buy7 = obj["bids"][6 * 2]
-                buy15 = obj["bids"][14 * 2]
-                buy4 = obj["bids"][3 * 2]
-                buy11 = obj["bids"][10 * 2]
-                buy10 = obj["bids"][9 * 2]
-                ask7 = obj["asks"][6 * 2]
-                ask15 = obj["asks"][14 * 2]
-                ask4 = obj["asks"][3 * 2]
-                ask11 = obj["asks"][10 * 2]
-                ask10 = obj["asks"][9 * 2]
-
-
-                buy_upper1 = buy7
-                buy_lower1 = buy15
-                sell_upper1 = ask15
-                sell_lower1 = ask7
-
-                print("buy4:%f" % buy4)
-                print("buy10:%f" % buy10)
-                print("sell4:%f" % ask4)
-                print("sell10:%f" % ask10)
-                print("trade pair:" + market)
-                restart = False
-
-                if counter > 300:
-                    restart = True
-                    print("cancel reason 1")
-                elif need_buy and (buy_price > buy_upper1):
-                    restart = True
-                    print("cancel reason 3")
-                elif need_buy and (buy_price < buy_lower1):
-                    restart = True
-                    print("cancel reason 4")
-                elif need_sell and (sell_price > sell_upper1):
-                    restart = True
-                    print("cancel reason 5")
-                elif need_sell and (sell_price < sell_lower1):
-                    restart = True
-                    print("cancel reason 6")
-
-                counter = time.time() - current_time
-                time.sleep(interval)
-                if restart:
-                    buy_id1 = "-1"
-                    buy_id2 = "-1"
-                    api.cancel_all_pending_order(market,trade_type)
-                    time.sleep(0.5)
-                    break
-
-            except Exception as ex:
-                print(sys.stderr, 'zb request ex: ', ex)
-                buy_id1 = "-1"
-                buy_id2 = "-1"
-                break
 
 
 

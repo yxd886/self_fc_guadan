@@ -137,7 +137,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
             obj = api.get_depth(market)
             buy1 = obj["bids"][0 * 2]
             ask1 = obj["asks"][0 * 2]
-            buy_amount = money/buy1
+            buy_amount = min(money,money_have)/buy1
             sell_amount=coin
             buy_id="-1"
             sell_id="-1"

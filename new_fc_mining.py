@@ -121,7 +121,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
     stamp = int(time.time())
     time_local = time.localtime(stamp)
     new_hour = int(time_local.tm_hour)
-    min_price_tick = 0.001
+    min_price_tick = 0.005
     if trade_type=="margin":
         money_have = sys.maxsize
     if new_hour == 0:

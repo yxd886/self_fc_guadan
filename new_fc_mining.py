@@ -145,19 +145,24 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                     numb = (money / ask1) - ((money / ask1 + coin) / 2)
                     api.take_order(market, "buy", ask1 * 1.01, numb, coin_place, trade_type)
             '''
-            money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
+
             obj = api.get_depth(market)
             buy1 = obj["bids"][0 * 2]
             ask1 = obj["asks"][0 * 2]
-            buy_id="-1"
-            sell_id="-1"
-            buy_amount = min(money,money_have)/buy1
-            sell_amount=coin
-            if buy_amount>min_size:
-                buy_id=api.take_order(market, "buy", buy1,buy_amount, coin_place, trade_type)
-            if sell_amount>min_size:
-                sell_id=api.take_order(market, "sell", ask1, sell_amount, coin_place, trade_type)
-            counter=0
+            buy2 = obj["bids"][1 * 2]
+            ask2 = obj["asks"][1 * 2]
+
+            api.take_order(market, "buy", ask1,min_size, coin_place, trade_type)
+            api.take_order(market, "sell", buy1, min_size, coin_place, trade_type)
+            money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
+            buy1_amount = min(money,money_have)/2/buy1
+            buy2_amount = min(money, money_have) / 2 / buy2
+            sell_amount=coin/2
+
+            buy_id=api.take_order(market, "buy", buy1,buy1_amount, coin_place, trade_type)
+            sell_id=api.take_order(market, "sell", ask1, sell_amount, coin_place, trade_type)
+            api.take_order(market, "buy", buy2,buy2_amount, coin_place, trade_type)
+            api.take_order(market, "sell", ask2, sell_amount, coin_place, trade_type)
             while (not api.is_order_complete(market,buy_id)) and (not api.is_order_complete(market,sell_id)):
                 time.sleep(1)
 

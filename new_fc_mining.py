@@ -166,9 +166,6 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
             counter=0
             while (not api.is_order_complete(market,buy_id)) and (not api.is_order_complete(market,sell_id)):
                 time.sleep(1)
-                counter+=1
-                if counter>=60:
-                    break
 
 
         except:

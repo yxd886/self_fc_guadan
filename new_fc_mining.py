@@ -147,19 +147,27 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
             obj = api.get_depth(market)
             buy1 = obj["bids"][0 * 2]
             ask1 = obj["asks"][0 * 2]
-            buy_amount = min(money,money_have)/buy1
+            buy_amount = min(money,money_have)/ask1
             sell_amount=coin
             buy_id="-1"
             sell_id="-1"
+            if buy_amount>min_size:
+                api.take_order(market, "buy", ask1,buy_amount, coin_place, trade_type)
+            if sell_amount>min_size:
+                api.take_order(market, "sell", buy1, sell_amount, coin_place, trade_type)
+            api.cancel_all_pending_order(market,trade_type)
+            money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
+            buy_amount = min(money,money_have)/buy1
+            sell_amount=coin
             if buy_amount>min_size:
                 buy_id=api.take_order(market, "buy", buy1,buy_amount, coin_place, trade_type)
             if sell_amount>min_size:
                 sell_id=api.take_order(market, "sell", ask1, sell_amount, coin_place, trade_type)
             counter=0
-            while not (api.is_order_complete(market,sell_id) and api.is_order_complete(market,buy_id)):
+            while (not api.is_order_complete(market,buy_id)) and (not api.is_order_complete(market,sell_id)):
                 time.sleep(1)
                 counter+=1
-                if counter>60:
+                if counter>=60:
                     break
 
 

@@ -115,13 +115,13 @@ def check_and_save(signature):
 
 
 def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_have,coin_place,trade_type="margin"):
-    need_balance = True
+    need_balance = False
     cell_num = 20
     market = _coin + _money
     stamp = int(time.time())
     time_local = time.localtime(stamp)
     new_hour = int(time_local.tm_hour)
-    min_price_tick = 1 / (10 ** api.price_decimal[market])
+    min_price_tick = 0.001
     if trade_type=="margin":
         money_have = sys.maxsize
     if new_hour == 0:
@@ -146,14 +146,13 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
 
             print("trade_pair:%s" % (market))
 
-            price_step = min_price_tick
-            price = buy1 - (cell_num / 2) * min_price_tick
+            base_price = buy1 - (cell_num / 2) * min_price_tick*buy1
 
             money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin,trade_type)
             remain_coin = coin
             for i in range(cell_num):
+                price = base_price + base_price*min_price_tick*i
                 price_list.append(price)
-                price += price_step
             if max(price_list) < ask1:
                 gap = 100
             elif min(price_list) > ask1:
@@ -261,7 +260,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                 print("current buy:%f" % buy1)
                 print("trade_pair:%s" % market)
                 print("time spent:%f seconds" % (time.time() - _start_time))
-                if (time.time() - _start_time)>300:
+                if (time.time() - _start_time)>1800:
                     break
                 print("len of buy_order_list:", len(buy_order_list))
                 if len(buy_order_list) > 0:

@@ -115,7 +115,7 @@ def check_and_save(signature):
 
 
 def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_have,coin_place,trade_type="margin"):
-    need_balance = False
+    need_balance = True
     cell_num = 20
     market = _coin + _money
     stamp = int(time.time())
@@ -260,8 +260,6 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                 print("current buy:%f" % buy1)
                 print("trade_pair:%s" % market)
                 print("time spent:%f seconds" % (time.time() - _start_time))
-                if (time.time() - _start_time)>1800:
-                    break
                 print("len of buy_order_list:", len(buy_order_list))
                 if len(buy_order_list) > 0:
                     buy_item = buy_order_list[0]

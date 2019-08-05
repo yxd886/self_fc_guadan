@@ -222,7 +222,7 @@ def tick(load_access_key, load_access_secret, load_money, load_coin, load_pariti
         print("start cancel existing pending orders")
         for market in markets:
             time.sleep(0.1)
-            api.cancel_all_pending_order(market)
+            api.cancel_all_pending_order(market,account_type)
         print("cancel pending orders completed")
         for i, market in enumerate(markets):
             time.sleep(0.1)

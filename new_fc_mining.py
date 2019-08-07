@@ -171,9 +171,10 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
             print("gap:%d" % gap)
 
             coin_need = coin
-            min_coin_need = len(price_list[gap:]) * min_size
+            sell_order_num = len(price_list[gap:])
             min_money_need_for_sell = 0
-            sell_step = 0
+            sell_step = max(coin_need/sell_order_num,min_size)
+            '''
 
             if gap < cell_num:
 
@@ -192,10 +193,11 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                 elif remain_coin < coin_need:
                     api.take_order(market, "buy", ask1 + ask1 * 0.01, coin_need - remain_coin + min_size, coin_place,trade_type)
             time.sleep(1)
+            
 
             money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin,trade_type)
             sell_step = max((coin / len(price_list[gap:])) + 1 / (10 ** api.amount_decimal[market]), min_size)
-
+            '''
             print("sell step:", sell_step)
 
             new_list = list()
@@ -206,7 +208,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                 new_list.reverse()
                 min_money_need_for_buy = 0
                 # print(new_list)
-                money_for_buy = (len(new_list) / cell_num) * min(money_have, money + coin * buy1)
+                money_for_buy = min(money_have, money)
                 print(money_for_buy)
                 for price in new_list:
                     min_money_need_for_buy += price * min_size

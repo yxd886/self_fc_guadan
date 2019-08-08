@@ -124,25 +124,16 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
             obj = api.get_depth(market)
             ask1 = obj["asks"][0 * 2]
             buy1 = obj["bids"][0 * 2]
-            ask10 = obj["asks"][9 * 2]
-            buy10 = obj["bids"][9 * 2]
-            ask20 = obj["asks"][9 * 2]
-            buy20 = obj["bids"][9 * 2]
             money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
             coin_can_buy = money/buy1
             if coin_can_buy-coin>2*min_size:
                 size = (coin_can_buy-coin)/2
                 api.take_order(market, "buy", buy1, size, coin_place, trade_type)
-                api.take_order(market, "buy", buy20, coin_can_buy-size, coin_place, trade_type)
-                api.take_order(market, "sell", ask10, coin, coin_place, trade_type)
             elif coin-coin_can_buy>2*min_size:
                 size = (coin-coin_can_buy)/2
                 api.take_order(market, "sell", ask1, size, coin_place, trade_type)
-                api.take_order(market, "buy", buy10, coin_can_buy, coin_place, trade_type)
-                api.take_order(market, "sell", ask20, coin-size, coin_place, trade_type)
             else:
-                api.take_order(market, "buy", buy10, coin_can_buy, coin_place, trade_type)
-                api.take_order(market, "sell", ask10, coin, coin_place, trade_type)
+                pass
 
         except Exception as ex:
             print(sys.stderr, 'in init: ', ex)

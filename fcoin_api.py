@@ -83,6 +83,7 @@ class DataAPI():
         except Exception as err:
             print(err)
             print(r.text)
+            return dict()
         if r.status_code == 200:
             return r.json()
 
@@ -266,11 +267,13 @@ class fcoin_api:
 
     def get_order_info(self, market, id):
         obj = self._api.get_order(order_id=id)
-        print(obj)
-        return obj["data"]
+        return obj.get("data",None)
 
     def is_order_complete(self, market, id):
+        time.sleep(0.2)
         obj = self.get_order_info(market, id)
+        if not obj:
+            return False
         if obj["state"]=="filled" or "canceled" in obj["state"]:
             return True
         else:

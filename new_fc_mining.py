@@ -121,35 +121,43 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
     need_cancel=True
     while True:
         try:
-            if need_cancel:
-                api.cancel_all_pending_order(market, trade_type)
+
+            api.cancel_all_pending_order(market, trade_type)
             obj = api.get_depth(market)
             ask1 = obj["asks"][0 * 2]
             buy1 = obj["bids"][0 * 2]
             money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
-            if need_cancel:
-                coin_can_buy = money/buy1
-                coin_have = coin
-            else:
-                coin_can_buy = (money+freez_money)/buy1
-                coin_have = coin+freez_coin
+
+            coin_can_buy = money/buy1
+            coin_have = coin
             if coin_can_buy-coin_have>2*min_size:
-                need_cancel = True
+
                 #size = (coin_can_buy-coin)/2
                 size = min_size
                 api.take_order(market, "buy", buy1, size, coin_place, trade_type)
             elif coin_have-coin_can_buy>2*min_size:
-                need_cancel = True
+
                 #size = (coin-coin_can_buy)/2
                 size = min_size
                 api.take_order(market, "sell", ask1, size, coin_place, trade_type)
             else:
-                if need_cancel:
-                    api.take_order(market, "buy", buy1*0.95, coin_can_buy, coin_place, trade_type)
-                    api.take_order(market, "sell", ask1*1.05, coin_have, coin_place, trade_type)
-                    need_cancel=False
-                else:
-                    pass
+                api.take_order(market, "buy", buy1 * 0.95, coin_can_buy, coin_place, trade_type)
+                api.take_order(market, "sell", ask1 * 1.05, coin_have, coin_place, trade_type)
+                for i in range(300):
+                    time.sleep(1)
+                    obj = api.get_depth(market)
+                    ask1 = obj["asks"][0 * 2]
+                    buy1 = obj["bids"][0 * 2]
+                    money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
+                    coin_can_buy = (money + freez_money) / buy1
+                    coin_have = coin + freez_coin
+                    print((coin_can_buy - coin_have)/min_size)
+                    if coin_can_buy - coin_have > 2 * min_size or coin_have-coin_can_buy>2*min_size:
+                        break
+
+
+
+
 
         except Exception as ex:
             print(sys.stderr, 'in init: ', ex)

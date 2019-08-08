@@ -297,7 +297,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                     buy_item = buy_order_list[0]
                     buy_id_to_monitor = buy_item["id"]
                     time.sleep(1)
-                    if api.is_order_complete(market, buy_id_to_monitor):
+                    while api.is_order_complete(market, buy_id_to_monitor):
                         _market = buy_item["pair"][0]
                         _direction = buy_item["pair"][1]
                         _price = buy_item["pair"][2]
@@ -308,12 +308,14 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                             tmp_sell_order_list.insert(0,
                                                        {"id": id, "pair": buy_item["self"], "self": buy_item["pair"]})
                         buy_order_list.remove(buy_item)
+                        buy_item = buy_order_list[0]
+                        buy_id_to_monitor = buy_item["id"]
                 print("len of sell order list:", len(sell_order_list))
                 if len(sell_order_list) > 0:
                     sell_item = sell_order_list[0]
                     sell_id_to_monitor = sell_item["id"]
                     time.sleep(1)
-                    if api.is_order_complete(market, sell_id_to_monitor):
+                    while api.is_order_complete(market, sell_id_to_monitor):
                         _market = sell_item["pair"][0]
                         _direction = sell_item["pair"][1]
                         _price = sell_item["pair"][2]
@@ -324,12 +326,14 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                             tmp_buy_order_list.insert(0,
                                                       {"id": id, "pair": sell_item["self"], "self": sell_item["pair"]})
                         sell_order_list.remove(sell_item)
+                        sell_item = sell_order_list[0]
+                        sell_id_to_monitor = sell_item["id"]
 
                 if len(tmp_buy_order_list) > 0:
                     tmp_buy_item = tmp_buy_order_list[0]
                     tmp_buy_id = tmp_buy_item["id"]
                     time.sleep(1)
-                    if api.is_order_complete(market, tmp_buy_id):
+                    while api.is_order_complete(market, tmp_buy_id):
                         _market = tmp_buy_item["pair"][0]
                         _direction = tmp_buy_item["pair"][1]
                         _price = tmp_buy_item["pair"][2]
@@ -340,12 +344,14 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                             sell_order_list.insert(0, {"id": id, "pair": tmp_buy_item["self"],
                                                        "self": tmp_buy_item["pair"]})
                         tmp_buy_order_list.remove(tmp_buy_item)
+                        tmp_buy_item = tmp_buy_order_list[0]
+                        tmp_buy_id = tmp_buy_item["id"]
 
                 if len(tmp_sell_order_list) > 0:
                     tmp_sell_item = tmp_sell_order_list[0]
                     tmp_sell_id = tmp_sell_item["id"]
                     time.sleep(1)
-                    if api.is_order_complete(market, tmp_sell_id):
+                    while api.is_order_complete(market, tmp_sell_id):
                         _market = tmp_sell_item["pair"][0]
                         _direction = tmp_sell_item["pair"][1]
                         _price = tmp_sell_item["pair"][2]
@@ -356,13 +362,15 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                             buy_order_list.insert(0, {"id": id, "pair": tmp_sell_item["self"],
                                                       "self": tmp_sell_item["pair"]})
                         tmp_sell_order_list.remove(tmp_sell_item)
+                        tmp_sell_item = tmp_sell_order_list[0]
+                        tmp_sell_id = tmp_sell_item["id"]
 
 
                 if len(level1_buy_order_list) > 0:
                     buy_item = level1_buy_order_list[0]
                     buy_id_to_monitor = buy_item["id"]
                     time.sleep(0.25)
-                    if api.is_order_complete(market, buy_id_to_monitor):
+                    while api.is_order_complete(market, buy_id_to_monitor):
                         _market = buy_item["pair"][0]
                         _direction = buy_item["pair"][1]
                         _price = buy_item["pair"][2]
@@ -373,12 +381,14 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                             level1_tmp_sell_order_list.insert(0,
                                                        {"id": id, "pair": buy_item["self"], "self": buy_item["pair"]})
                         level1_buy_order_list.remove(buy_item)
+                        buy_item = level1_buy_order_list[0]
+                        buy_id_to_monitor = buy_item["id"]
                 print("len of sell order list:", len(sell_order_list))
                 if len(level1_sell_order_list) > 0:
                     sell_item = level1_sell_order_list[0]
                     sell_id_to_monitor = sell_item["id"]
                     time.sleep(0.25)
-                    if api.is_order_complete(market, sell_id_to_monitor):
+                    while api.is_order_complete(market, sell_id_to_monitor):
                         _market = sell_item["pair"][0]
                         _direction = sell_item["pair"][1]
                         _price = sell_item["pair"][2]
@@ -389,12 +399,14 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                             level1_tmp_buy_order_list.insert(0,
                                                       {"id": id, "pair": sell_item["self"], "self": sell_item["pair"]})
                         level1_sell_order_list.remove(sell_item)
+                        sell_item = level1_sell_order_list[0]
+                        sell_id_to_monitor = sell_item["id"]
 
                 if len(level1_tmp_buy_order_list) > 0:
                     tmp_buy_item = level1_tmp_buy_order_list[0]
                     tmp_buy_id = tmp_buy_item["id"]
                     time.sleep(0.25)
-                    if api.is_order_complete(market, tmp_buy_id):
+                    while api.is_order_complete(market, tmp_buy_id):
                         _market = tmp_buy_item["pair"][0]
                         _direction = tmp_buy_item["pair"][1]
                         _price = tmp_buy_item["pair"][2]
@@ -405,12 +417,14 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                             level1_sell_order_list.insert(0, {"id": id, "pair": tmp_buy_item["self"],
                                                        "self": tmp_buy_item["pair"]})
                         level1_tmp_buy_order_list.remove(tmp_buy_item)
+                        tmp_buy_item = level1_tmp_buy_order_list[0]
+                        tmp_buy_id = tmp_buy_item["id"]
 
                 if len(level1_tmp_sell_order_list) > 0:
                     tmp_sell_item = level1_tmp_sell_order_list[0]
                     tmp_sell_id = tmp_sell_item["id"]
                     time.sleep(0.25)
-                    if api.is_order_complete(market, tmp_sell_id):
+                    while api.is_order_complete(market, tmp_sell_id):
                         _market = tmp_sell_item["pair"][0]
                         _direction = tmp_sell_item["pair"][1]
                         _price = tmp_sell_item["pair"][2]
@@ -421,6 +435,8 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                             level1_buy_order_list.insert(0, {"id": id, "pair": tmp_sell_item["self"],
                                                       "self": tmp_sell_item["pair"]})
                         level1_tmp_sell_order_list.remove(tmp_sell_item)
+                        tmp_sell_item = level1_tmp_sell_order_list[0]
+                        tmp_sell_id = tmp_sell_item["id"]
 
 
             except Exception as ex:

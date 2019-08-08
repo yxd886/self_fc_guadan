@@ -267,6 +267,20 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                 ask10 = obj["asks"][9 * 2]
                 buy10 = obj["bids"][9 * 2]
 
+                id = api.take_order(market, "buy", buy1, min_size, coin_place, trade_type)
+                if id != "-1":
+                    buy_order_list.append(
+                        {"id": id, "pair": (market, "sell", buy1 + min_price_tick, min_size, coin_place),
+                         "self": (market, "buy", buy1, min_size, coin_place)})
+
+                id = api.take_order(market, "sell", ask1, min_size, coin_place, trade_type)
+                if id != "-1":
+                    sell_order_list.append(
+                        {"id": id, "pair": (market, "buy", ask1 - min_price_tick, min_size, coin_place),
+                         "self": (market, "sell", ask1, min_size, coin_place)})
+
+
+
                 if higest_ask<buy10 or lowest_buy>ask10:
                     break
                 print("current ask:%f" % ask1)

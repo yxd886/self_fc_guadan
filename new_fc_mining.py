@@ -146,7 +146,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
             else:
                 if need_cancel:
                     api.take_order(market, "buy", buy1*0.95, coin_can_buy, coin_place, trade_type)
-                    api.take_order(market, "sell", ask1*1.05, size, coin_place, trade_type)
+                    api.take_order(market, "sell", ask1*1.05, coin_have, coin_place, trade_type)
                     need_cancel=False
                 else:
                     pass

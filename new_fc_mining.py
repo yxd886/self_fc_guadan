@@ -308,6 +308,8 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                             tmp_sell_order_list.insert(0,
                                                        {"id": id, "pair": buy_item["self"], "self": buy_item["pair"]})
                         buy_order_list.remove(buy_item)
+                        if len(buy_order_list)==0:
+                            break
                         buy_item = buy_order_list[0]
                         buy_id_to_monitor = buy_item["id"]
                 print("len of sell order list:", len(sell_order_list))
@@ -326,6 +328,8 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                             tmp_buy_order_list.insert(0,
                                                       {"id": id, "pair": sell_item["self"], "self": sell_item["pair"]})
                         sell_order_list.remove(sell_item)
+                        if len(sell_order_list)==0:
+                            break
                         sell_item = sell_order_list[0]
                         sell_id_to_monitor = sell_item["id"]
 
@@ -344,6 +348,8 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                             sell_order_list.insert(0, {"id": id, "pair": tmp_buy_item["self"],
                                                        "self": tmp_buy_item["pair"]})
                         tmp_buy_order_list.remove(tmp_buy_item)
+                        if len(tmp_buy_order_list)==0:
+                            break
                         tmp_buy_item = tmp_buy_order_list[0]
                         tmp_buy_id = tmp_buy_item["id"]
 
@@ -362,6 +368,8 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                             buy_order_list.insert(0, {"id": id, "pair": tmp_sell_item["self"],
                                                       "self": tmp_sell_item["pair"]})
                         tmp_sell_order_list.remove(tmp_sell_item)
+                        if len(tmp_sell_order_list)==0:
+                            break
                         tmp_sell_item = tmp_sell_order_list[0]
                         tmp_sell_id = tmp_sell_item["id"]
 
@@ -381,6 +389,8 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                             level1_tmp_sell_order_list.insert(0,
                                                        {"id": id, "pair": buy_item["self"], "self": buy_item["pair"]})
                         level1_buy_order_list.remove(buy_item)
+                        if len(level1_buy_order_list)==0:
+                            break
                         buy_item = level1_buy_order_list[0]
                         buy_id_to_monitor = buy_item["id"]
                 print("len of sell order list:", len(sell_order_list))
@@ -399,6 +409,8 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                             level1_tmp_buy_order_list.insert(0,
                                                       {"id": id, "pair": sell_item["self"], "self": sell_item["pair"]})
                         level1_sell_order_list.remove(sell_item)
+                        if len(level1_sell_order_list)==0:
+                            break
                         sell_item = level1_sell_order_list[0]
                         sell_id_to_monitor = sell_item["id"]
 
@@ -417,6 +429,8 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                             level1_sell_order_list.insert(0, {"id": id, "pair": tmp_buy_item["self"],
                                                        "self": tmp_buy_item["pair"]})
                         level1_tmp_buy_order_list.remove(tmp_buy_item)
+                        if len(level1_tmp_buy_order_list)==0:
+                            break
                         tmp_buy_item = level1_tmp_buy_order_list[0]
                         tmp_buy_id = tmp_buy_item["id"]
 
@@ -435,6 +449,8 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                             level1_buy_order_list.insert(0, {"id": id, "pair": tmp_sell_item["self"],
                                                       "self": tmp_sell_item["pair"]})
                         level1_tmp_sell_order_list.remove(tmp_sell_item)
+                        if len(level1_tmp_sell_order_list)==0:
+                            break
                         tmp_sell_item = level1_tmp_sell_order_list[0]
                         tmp_sell_id = tmp_sell_item["id"]
 

@@ -257,6 +257,11 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
             print(sys.stderr, 'in init: ', ex)
             print("exception")
             continue
+
+        level1_sell_order_list = list()
+        level1_buy_order_list = list()
+        level1_tmp_buy_order_list = list()
+        level1_tmp_sell_order_list = list()
         _start_time = time.time()
         while True:
             try:
@@ -269,13 +274,13 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
 
                 id = api.take_order(market, "buy", buy1, min_size, coin_place, trade_type)
                 if id != "-1":
-                    buy_order_list.append(
+                    level1_buy_order_list.append(
                         {"id": id, "pair": (market, "sell", buy1 + min_price_tick, min_size, coin_place),
                          "self": (market, "buy", buy1, min_size, coin_place)})
 
                 id = api.take_order(market, "sell", ask1, min_size, coin_place, trade_type)
                 if id != "-1":
-                    sell_order_list.append(
+                    level1_sell_order_list.append(
                         {"id": id, "pair": (market, "buy", ask1 - min_price_tick, min_size, coin_place),
                          "self": (market, "sell", ask1, min_size, coin_place)})
 
@@ -351,6 +356,71 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                             buy_order_list.insert(0, {"id": id, "pair": tmp_sell_item["self"],
                                                       "self": tmp_sell_item["pair"]})
                         tmp_sell_order_list.remove(tmp_sell_item)
+
+
+                if len(level1_buy_order_list) > 0:
+                    buy_item = level1_buy_order_list[0]
+                    buy_id_to_monitor = buy_item["id"]
+                    time.sleep(0.25)
+                    if api.is_order_complete(market, buy_id_to_monitor):
+                        _market = buy_item["pair"][0]
+                        _direction = buy_item["pair"][1]
+                        _price = buy_item["pair"][2]
+                        _size = buy_item["pair"][3]
+                        _coin_place = buy_item["pair"][4]
+                        id = api.take_order(_market, _direction, _price, _size, _coin_place, trade_type)
+                        if id != "-1":
+                            level1_tmp_sell_order_list.insert(0,
+                                                       {"id": id, "pair": buy_item["self"], "self": buy_item["pair"]})
+                        level1_buy_order_list.remove(buy_item)
+                print("len of sell order list:", len(sell_order_list))
+                if len(level1_sell_order_list) > 0:
+                    sell_item = level1_sell_order_list[0]
+                    sell_id_to_monitor = sell_item["id"]
+                    time.sleep(0.25)
+                    if api.is_order_complete(market, sell_id_to_monitor):
+                        _market = sell_item["pair"][0]
+                        _direction = sell_item["pair"][1]
+                        _price = sell_item["pair"][2]
+                        _size = sell_item["pair"][3]
+                        _coin_place = sell_item["pair"][4]
+                        id = api.take_order(_market, _direction, _price, _size, _coin_place, trade_type)
+                        if id != "-1":
+                            level1_tmp_buy_order_list.insert(0,
+                                                      {"id": id, "pair": sell_item["self"], "self": sell_item["pair"]})
+                        level1_sell_order_list.remove(sell_item)
+
+                if len(level1_tmp_buy_order_list) > 0:
+                    tmp_buy_item = level1_tmp_buy_order_list[0]
+                    tmp_buy_id = tmp_buy_item["id"]
+                    time.sleep(0.25)
+                    if api.is_order_complete(market, tmp_buy_id):
+                        _market = tmp_buy_item["pair"][0]
+                        _direction = tmp_buy_item["pair"][1]
+                        _price = tmp_buy_item["pair"][2]
+                        _size = tmp_buy_item["pair"][3]
+                        _coin_place = tmp_buy_item["pair"][4]
+                        id = api.take_order(_market, _direction, _price, _size, _coin_place, trade_type)
+                        if id != "-1":
+                            level1_sell_order_list.insert(0, {"id": id, "pair": tmp_buy_item["self"],
+                                                       "self": tmp_buy_item["pair"]})
+                        level1_tmp_buy_order_list.remove(tmp_buy_item)
+
+                if len(level1_tmp_sell_order_list) > 0:
+                    tmp_sell_item = level1_tmp_sell_order_list[0]
+                    tmp_sell_id = tmp_sell_item["id"]
+                    time.sleep(0.25)
+                    if api.is_order_complete(market, tmp_sell_id):
+                        _market = tmp_sell_item["pair"][0]
+                        _direction = tmp_sell_item["pair"][1]
+                        _price = tmp_sell_item["pair"][2]
+                        _size = tmp_sell_item["pair"][3]
+                        _coin_place = tmp_sell_item["pair"][4]
+                        id = api.take_order(_market, _direction, _price, _size, _coin_place, trade_type)
+                        if id != "-1":
+                            level1_buy_order_list.insert(0, {"id": id, "pair": tmp_sell_item["self"],
+                                                      "self": tmp_sell_item["pair"]})
+                        level1_tmp_sell_order_list.remove(tmp_sell_item)
 
 
             except Exception as ex:

@@ -121,14 +121,21 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
     stamp = int(time.time())
     time_local = time.localtime(stamp)
     new_hour = int(time_local.tm_hour)
+    min_price_tick = 1 / (10 ** api.price_decimal[market])
+    while True:
+        try:
+            obj = api.get_depth(market)
+            ask1 = obj["asks"][0 * 2]
+            buy1 = obj["bids"][0 * 2]
+            money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
+            init_value = (money + freez_money) + (coin + freez_coin) * buy1
+            break
+        except:
+            continue
 
-    obj = api.get_depth(market)
-    ask1 = obj["asks"][0 * 2]
-    buy1 = obj["bids"][0 * 2]
-    money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
-    init_value = (money+freez_money)+(coin+freez_coin)*buy1
     tolerant_loss=2
     huge_loss=20
+    profit_step=min_price_tick*1
 
     if trade_type=="margin":
         money_have = sys.maxsize
@@ -152,7 +159,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
             ask1 = obj["asks"][0 * 2]
             buy1 = obj["bids"][0 * 2]
             #min_price_tick = 0.005*buy1
-            min_price_tick = 1 / (10 ** api.price_decimal[market])
+
 
             lowest_buy = buy1
             higest_ask = ask1
@@ -241,7 +248,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                         lowest_buy = price
                         _counter = 0
                         buy_order_list.append(
-                            {"id": id, "pair": (market, "sell", price + min_price_tick, size, coin_place),
+                            {"id": id, "pair": (market, "sell", price + profit_step, size, coin_place),
                              "self": (market, "buy", price, size, coin_place)})
                     else:
                         _counter +=1
@@ -258,7 +265,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                             higest_ask = price
                             _counter = 0
                             sell_order_list.append(
-                                {"id": id, "pair": (market, "buy", price - min_price_tick, size, coin_place),
+                                {"id": id, "pair": (market, "buy", price - profit_step, size, coin_place),
                                  "self": (market, "sell", price, size, coin_place)})
                         else:
                             _counter += 1
@@ -289,22 +296,24 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                 money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
                 current_value = (money + freez_money) + (coin + freez_coin) * buy1
                 print("trade_pair:",market,"value loss:",init_value-current_value)
-
+                cell_num = 20
+                profit_step = min_price_tick
                 if init_value-current_value<tolerant_loss:
                     if money/buy1>min_size:
                         id = api.take_order(market, "buy", buy1, min_size, coin_place, trade_type)
                         if id != "-1":
                             level1_buy_order_list.append(
-                                {"id": id, "pair": (market, "sell", buy1 + min_price_tick, min_size, coin_place),
+                                {"id": id, "pair": (market, "sell", buy1 + profit_step, min_size, coin_place),
                                  "self": (market, "buy", buy1, min_size, coin_place)})
                     if coin>min_size:
                         id = api.take_order(market, "sell", ask1, min_size, coin_place, trade_type)
                         if id != "-1":
                             level1_sell_order_list.append(
-                                {"id": id, "pair": (market, "buy", ask1 - min_price_tick, min_size, coin_place),
+                                {"id": id, "pair": (market, "buy", ask1 - profit_step, min_size, coin_place),
                                  "self": (market, "sell", ask1, min_size, coin_place)})
                 elif init_value-current_value>huge_loss:
                     cell_num=100
+                    profit_step=5*min_price_tick
 
 
 

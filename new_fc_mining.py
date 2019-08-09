@@ -298,6 +298,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                     buy_id_to_monitor = buy_item["id"]
                     time.sleep(1)
                     while api.is_order_complete(market, buy_id_to_monitor):
+                        time.sleep(0.25)
                         _market = buy_item["pair"][0]
                         _direction = buy_item["pair"][1]
                         _price = buy_item["pair"][2]
@@ -318,6 +319,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                     sell_id_to_monitor = sell_item["id"]
                     time.sleep(1)
                     while api.is_order_complete(market, sell_id_to_monitor):
+                        time.sleep(0.25)
                         _market = sell_item["pair"][0]
                         _direction = sell_item["pair"][1]
                         _price = sell_item["pair"][2]
@@ -338,6 +340,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                     tmp_buy_id = tmp_buy_item["id"]
                     time.sleep(1)
                     while api.is_order_complete(market, tmp_buy_id):
+                        time.sleep(0.25)
                         _market = tmp_buy_item["pair"][0]
                         _direction = tmp_buy_item["pair"][1]
                         _price = tmp_buy_item["pair"][2]
@@ -358,6 +361,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                     tmp_sell_id = tmp_sell_item["id"]
                     time.sleep(1)
                     while api.is_order_complete(market, tmp_sell_id):
+                        time.sleep(0.25)
                         _market = tmp_sell_item["pair"][0]
                         _direction = tmp_sell_item["pair"][1]
                         _price = tmp_sell_item["pair"][2]
@@ -379,6 +383,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                     buy_id_to_monitor = buy_item["id"]
                     time.sleep(0.25)
                     while api.is_order_complete(market, buy_id_to_monitor):
+                        time.sleep(0.25)
                         _market = buy_item["pair"][0]
                         _direction = buy_item["pair"][1]
                         _price = buy_item["pair"][2]
@@ -439,6 +444,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                     tmp_sell_id = tmp_sell_item["id"]
                     time.sleep(0.25)
                     while api.is_order_complete(market, tmp_sell_id):
+                        time.sleep(0.25)
                         _market = tmp_sell_item["pair"][0]
                         _direction = tmp_sell_item["pair"][1]
                         _price = tmp_sell_item["pair"][2]
@@ -709,7 +715,7 @@ if __name__ == '__main__':
 
 
     load_money = "usdt"
-    total_load_coin="ltc eos btc eth xrp bch"
+    total_load_coin="ltc eos btc eth xrp bch etc xlm zec ada dash trx"
     load_coin = "ltc"
     load_parition="2"
     load_bidirection="3"
@@ -725,7 +731,7 @@ if __name__ == '__main__':
                 load_coin=line.split("#")[4]
                 account_type=line.split("#")[5].strip()
 
-                #init_sell(apikey,apisecret,total_load_coin,load_money,account_type)
+                init_sell(apikey,apisecret,total_load_coin,load_money,account_type)
 
                 p1 = Process(target=tick, args=(
                     apikey, apisecret, load_money, load_coin, load_parition, total_money,

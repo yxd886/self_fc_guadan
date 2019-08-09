@@ -127,7 +127,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
     buy1 = obj["bids"][0 * 2]
     money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
     init_value = (money+freez_money)+(coin+freez_coin)*buy1
-    tolerant_loss=10
+    tolerant_loss=2
 
     if trade_type=="margin":
         money_have = sys.maxsize
@@ -156,7 +156,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
             lowest_buy = buy1
             higest_ask = ask1
 
-            print("trade_pair:%s" % (market))
+            #print("trade_pair:%s" % (market))
 
             base_price = buy1 - (cell_num / 2) * min_price_tick
 
@@ -176,7 +176,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                         gap = i
                         break
                 gap += 1
-            print("gap:%d" % gap)
+            #print("gap:%d" % gap)
 
             coin_need = coin
             sell_order_num = len(price_list[gap:])
@@ -209,7 +209,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
             money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin,trade_type)
             sell_step = max((coin / len(price_list[gap:])) + 1 / (10 ** api.amount_decimal[market]), min_size)
             '''
-            print("sell step:", sell_step)
+            #print("sell step:", sell_step)
 
             new_list = list()
             buy_step = 0
@@ -220,7 +220,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                 min_money_need_for_buy = 0
                 # print(new_list)
                 money_for_buy = min(money_have, money)
-                print(money_for_buy)
+                #print(money_for_buy)
                 for price in new_list:
                     min_money_need_for_buy += price * min_size
 
@@ -229,7 +229,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                                 10 ** api.amount_decimal[market])
                 else:
                     buy_step = min_size
-            print("buy_step:", buy_step)
+            #print("buy_step:", buy_step)
             _counter=0
             for price in new_list:
                 time.sleep(0.5)
@@ -287,7 +287,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
 
                 money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
                 current_value = (money + freez_money) + (coin + freez_coin) * buy1
-                print("value loss:",init_value-current_value)
+                print("trade_pair:",market,"value loss:",init_value-current_value)
 
                 if init_value-current_value<tolerant_loss:
                     if money/buy1>min_size:
@@ -307,11 +307,11 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
 
                 if higest_ask<buy10 or lowest_buy>ask10:
                     break
-                print("current ask:%f" % ask1)
-                print("current buy:%f" % buy1)
-                print("trade_pair:%s" % market)
-                print("time spent:%f seconds" % (time.time() - _start_time))
-                print("len of buy_order_list:", len(buy_order_list))
+                #print("current ask:%f" % ask1)
+                #print("current buy:%f" % buy1)
+                #print("trade_pair:%s" % market)
+                #print("time spent:%f seconds" % (time.time() - _start_time))
+                #print("len of buy_order_list:", len(buy_order_list))
 
                 complete_order_list=api.get_complete_order_list(market,trade_type)
                 complete_order_list.append("-1")
@@ -336,7 +336,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                             break
                         buy_item = buy_order_list[0]
                         buy_id_to_monitor = buy_item["id"]
-                print("len of sell order list:", len(sell_order_list))
+                #print("len of sell order list:", len(sell_order_list))
                 if len(sell_order_list) > 0:
                     sell_item = sell_order_list[0]
                     sell_id_to_monitor = sell_item["id"]
@@ -421,7 +421,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                             break
                         buy_item = level1_buy_order_list[0]
                         buy_id_to_monitor = buy_item["id"]
-                print("len of sell order list:", len(sell_order_list))
+                #print("len of sell order list:", len(sell_order_list))
                 if len(level1_sell_order_list) > 0:
                     sell_item = level1_sell_order_list[0]
                     sell_id_to_monitor = sell_item["id"]

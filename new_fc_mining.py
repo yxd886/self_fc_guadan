@@ -128,6 +128,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
     money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
     init_value = (money+freez_money)+(coin+freez_coin)*buy1
     tolerant_loss=2
+    huge_loss=20
 
     if trade_type=="margin":
         money_have = sys.maxsize
@@ -302,10 +303,12 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                             level1_sell_order_list.append(
                                 {"id": id, "pair": (market, "buy", ask1 - min_price_tick, min_size, coin_place),
                                  "self": (market, "sell", ask1, min_size, coin_place)})
+                elif init_value-current_value>huge_loss:
+                    cell_num=100
 
 
 
-                if higest_ask<buy10 or lowest_buy>ask10:
+                if higest_ask<buy1-(cell_num/2*min_price_tick) or lowest_buy>ask1+(cell_num/2*min_price_tick):
                     break
                 #print("current ask:%f" % ask1)
                 #print("current buy:%f" % buy1)

@@ -308,6 +308,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                 print("len of buy_order_list:", len(buy_order_list))
 
                 complete_order_list=api.get_complete_order_list(market,trade_type)
+                complete_order_list.append("-1")
 
                 if len(buy_order_list) > 0:
                     buy_item = buy_order_list[0]

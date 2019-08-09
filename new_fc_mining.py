@@ -181,7 +181,10 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
             coin_need = coin
             sell_order_num = len(price_list[gap:])
             min_money_need_for_sell = 0
-            sell_step = max(coin_need/sell_order_num,min_size)
+            if sell_order_num==0:
+                sell_step=min_size
+            else:
+                sell_step = max(coin_need/sell_order_num,min_size)
             '''
 
             if gap < cell_num:

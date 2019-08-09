@@ -321,7 +321,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                     buy_id_to_monitor = buy_item["id"]
                     time.sleep(1)
                     while api.is_order_complete(market, buy_id_to_monitor,complete_order_list):
-                        time.sleep(0.25)
+                        time.sleep(1)
                         _market = buy_item["pair"][0]
                         _direction = buy_item["pair"][1]
                         _price = buy_item["pair"][2]
@@ -342,7 +342,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                     sell_id_to_monitor = sell_item["id"]
                     time.sleep(1)
                     while api.is_order_complete(market, sell_id_to_monitor,complete_order_list):
-                        time.sleep(0.25)
+                        time.sleep(1)
                         _market = sell_item["pair"][0]
                         _direction = sell_item["pair"][1]
                         _price = sell_item["pair"][2]
@@ -363,7 +363,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                     tmp_buy_id = tmp_buy_item["id"]
                     time.sleep(1)
                     while api.is_order_complete(market, tmp_buy_id,complete_order_list):
-                        time.sleep(0.25)
+                        time.sleep(1)
                         _market = tmp_buy_item["pair"][0]
                         _direction = tmp_buy_item["pair"][1]
                         _price = tmp_buy_item["pair"][2]
@@ -384,7 +384,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                     tmp_sell_id = tmp_sell_item["id"]
                     time.sleep(1)
                     while api.is_order_complete(market, tmp_sell_id,complete_order_list):
-                        time.sleep(0.25)
+                        time.sleep(1)
                         _market = tmp_sell_item["pair"][0]
                         _direction = tmp_sell_item["pair"][1]
                         _price = tmp_sell_item["pair"][2]
@@ -406,7 +406,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                     buy_id_to_monitor = buy_item["id"]
                     time.sleep(0.25)
                     while api.is_order_complete(market, buy_id_to_monitor,complete_order_list):
-                        time.sleep(0.25)
+                        time.sleep(1)
                         _market = buy_item["pair"][0]
                         _direction = buy_item["pair"][1]
                         _price = buy_item["pair"][2]
@@ -425,7 +425,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                 if len(level1_sell_order_list) > 0:
                     sell_item = level1_sell_order_list[0]
                     sell_id_to_monitor = sell_item["id"]
-                    time.sleep(0.25)
+                    time.sleep(1)
                     while api.is_order_complete(market, sell_id_to_monitor,complete_order_list):
                         _market = sell_item["pair"][0]
                         _direction = sell_item["pair"][1]
@@ -445,7 +445,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                 if len(level1_tmp_buy_order_list) > 0:
                     tmp_buy_item = level1_tmp_buy_order_list[0]
                     tmp_buy_id = tmp_buy_item["id"]
-                    time.sleep(0.25)
+                    time.sleep(1)
                     while api.is_order_complete(market, tmp_buy_id,complete_order_list):
                         _market = tmp_buy_item["pair"][0]
                         _direction = tmp_buy_item["pair"][1]
@@ -467,7 +467,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                     tmp_sell_id = tmp_sell_item["id"]
                     time.sleep(0.25)
                     while api.is_order_complete(market, tmp_sell_id,complete_order_list):
-                        time.sleep(0.25)
+                        time.sleep(1)
                         _market = tmp_sell_item["pair"][0]
                         _direction = tmp_sell_item["pair"][1]
                         _price = tmp_sell_item["pair"][2]

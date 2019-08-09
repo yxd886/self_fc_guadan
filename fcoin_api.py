@@ -270,8 +270,11 @@ class fcoin_api:
         return obj.get("data",None)
 
     def is_order_complete(self, market, id, filled_list=None):
-        if not filled_list:
+        print(filled_list)
+        if filled_list!=None:
+            print("direct return")
             return (id in filled_list)
+        print("search")
         time.sleep(0.2)
         obj = self.get_order_info(market, id)
         if not obj:

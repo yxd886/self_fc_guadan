@@ -567,7 +567,7 @@ def tick(load_access_key, load_access_secret, load_money, load_coin, load_pariti
             thread = threading.Thread(target=buy_main_body,args=(mutex2,api,bidirection,partition,_money,coins[i],min_size[market],money_have/len(markets),coin_place_list[i],account_type))
             thread.setDaemon(True)
             thread.start()
-        time.sleep(3600)
+        time.sleep(7200)
         print("tick exit!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 
     except Exception as ex:
@@ -791,7 +791,7 @@ if __name__ == '__main__':
                 p1.daemon = True
                 p1.start()
                 processes.append(p1)
-        processes[0].join(timeout=3600)
+        processes[0].join(timeout=7200)
         for p in processes:
             p.terminate()
         processes=[]

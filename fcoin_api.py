@@ -316,7 +316,9 @@ class fcoin_api:
         else:
             obj = self._api.list_orders(symbol=market, states="submitted,partial_filled",account_type=account_type)
         print(obj)
-        obj = obj["data"]
+        obj = obj.get("data",None)
+        if not obj:
+            return
         id_list = [item["id"] for item in obj]
         for id in id_list:
             #time.sleep(0.5)

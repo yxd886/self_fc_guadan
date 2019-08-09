@@ -133,8 +133,9 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
         except:
             continue
 
-    tolerant_loss=2
-    huge_loss=20
+    tolerant_loss=init_value*0.004
+    huge_loss=init_value*0.01
+    huge_profit=init_value*0.01
     profit_step=min_price_tick*1
 
     if trade_type=="margin":
@@ -164,7 +165,12 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
             current_value = (money + freez_money) + (coin + freez_coin) * buy1
             if init_value-current_value>huge_loss:
                 cell_num = 100
-                profit_step = 5 * min_price_tick
+                profit_step = 10 * min_price_tick
+                api.take_order(market, "sell", buy1*0.95, coin, coin_place, trade_type)
+            elif current_value-init_value>huge_profit:
+                cell_num = 100
+                profit_step = 10 * min_price_tick
+                api.take_order(market, "buy", ask1 * 1.05, coin, coin_place, trade_type)
             else:
                 cell_num = 20
                 profit_step = 2*min_price_tick
@@ -304,7 +310,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                 money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
                 current_value = (money + freez_money) + (coin + freez_coin) * buy1
                 print("trade_pair:",market,"value loss:",init_value-current_value)
-                if init_value-current_value<tolerant_loss:
+                if init_value-current_value<tolerant_loss and init_value-current_value>-1*tolerant_loss:
                     if money/buy1>min_size:
                         id = api.take_order(market, "buy", buy1, min_size, coin_place, trade_type)
                         if id != "-1":

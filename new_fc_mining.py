@@ -428,7 +428,7 @@ if __name__ == '__main__':
                 load_coin=line.split("#")[4]
                 account_type=line.split("#")[5].strip()
 
-                init_sell(apikey,apisecret,total_load_coin,load_money,account_type)
+                #init_sell(apikey,apisecret,total_load_coin,load_money,account_type)
 
                 p1 = Process(target=tick, args=(
                     apikey, apisecret, load_money, load_coin, load_parition, total_money,

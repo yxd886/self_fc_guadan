@@ -754,7 +754,8 @@ if __name__ == '__main__':
                 if first_time:
                     first_time=False
                     try:
-                        init_sell(apikey,apisecret,total_load_coin,load_money,account_type)
+                        #init_sell(apikey,apisecret,total_load_coin,load_money,account_type)
+                        pass
                     except:
                         pass
 

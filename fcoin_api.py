@@ -269,7 +269,9 @@ class fcoin_api:
         obj = self._api.get_order(order_id=id)
         return obj.get("data",None)
 
-    def is_order_complete(self, market, id):
+    def is_order_complete(self, market, id, filled_list=None):
+        if not filled_list:
+            return (id in filled_list)
         time.sleep(0.2)
         obj = self.get_order_info(market, id)
         if not obj:
@@ -309,7 +311,16 @@ class fcoin_api:
         buy1 = obj["bids"][0]
         sell1 = obj["asks"][0]
         return buy1, sell1
-
+    def get_complete_order_list(self,market,account_type="main"):
+        if account_type=="main":
+            obj = self._api.list_orders(symbol=market,states="filled")
+        else:
+            obj = self._api.list_orders(symbol=market, states="filled",account_type=account_type)
+        obj = obj.get("data",None)
+        if not obj:
+            return list()
+        id_list  = [item["id"] for item in obj]
+        return id_list
     def cancel_all_pending_order(self,market,account_type="main"):
         if account_type=="main":
             obj = self._api.list_orders(symbol=market,states="submitted,partial_filled")

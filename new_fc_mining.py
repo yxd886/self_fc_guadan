@@ -721,6 +721,7 @@ if __name__ == '__main__':
     load_bidirection="3"
     load_coin_place="1"
     processes =list()
+    first_time=True
     while True:
         with open(multi_config_file, "r") as f:
             for line in f.readlines():
@@ -730,8 +731,12 @@ if __name__ == '__main__':
                 load_money=line.split("#")[3]
                 load_coin=line.split("#")[4]
                 account_type=line.split("#")[5].strip()
-
-                init_sell(apikey,apisecret,total_load_coin,load_money,account_type)
+                if first_time:
+                    first_time=False
+                    try:
+                        init_sell(apikey,apisecret,total_load_coin,load_money,account_type)
+                    except:
+                        pass
 
                 p1 = Process(target=tick, args=(
                     apikey, apisecret, load_money, load_coin, load_parition, total_money,

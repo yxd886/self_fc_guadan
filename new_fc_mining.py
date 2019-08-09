@@ -121,6 +121,14 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
     stamp = int(time.time())
     time_local = time.localtime(stamp)
     new_hour = int(time_local.tm_hour)
+
+    obj = api.get_depth(market)
+    ask1 = obj["asks"][0 * 2]
+    buy1 = obj["bids"][0 * 2]
+    money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
+    init_value = (money+freez_money)+(coin+freez_coin)*buy1
+    tolerant_loss=10
+
     if trade_type=="margin":
         money_have = sys.maxsize
     if new_hour == 0:
@@ -272,17 +280,22 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                 ask10 = obj["asks"][9 * 2]
                 buy10 = obj["bids"][9 * 2]
 
-                id = api.take_order(market, "buy", buy1, min_size, coin_place, trade_type)
-                if id != "-1":
-                    level1_buy_order_list.append(
-                        {"id": id, "pair": (market, "sell", buy1 + min_price_tick, min_size, coin_place),
-                         "self": (market, "buy", buy1, min_size, coin_place)})
+                money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
+                current_value = (money + freez_money) + (coin + freez_coin) * buy1
+                print("value loss:",init_value-current_value)
 
-                id = api.take_order(market, "sell", ask1, min_size, coin_place, trade_type)
-                if id != "-1":
-                    level1_sell_order_list.append(
-                        {"id": id, "pair": (market, "buy", ask1 - min_price_tick, min_size, coin_place),
-                         "self": (market, "sell", ask1, min_size, coin_place)})
+                if init_value-current_value<tolerant_loss:
+                    id = api.take_order(market, "buy", buy1, min_size, coin_place, trade_type)
+                    if id != "-1":
+                        level1_buy_order_list.append(
+                            {"id": id, "pair": (market, "sell", buy1 + min_price_tick, min_size, coin_place),
+                             "self": (market, "buy", buy1, min_size, coin_place)})
+
+                    id = api.take_order(market, "sell", ask1, min_size, coin_place, trade_type)
+                    if id != "-1":
+                        level1_sell_order_list.append(
+                            {"id": id, "pair": (market, "buy", ask1 - min_price_tick, min_size, coin_place),
+                             "self": (market, "sell", ask1, min_size, coin_place)})
 
 
 

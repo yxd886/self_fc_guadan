@@ -141,7 +141,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                 size = min_size
                 api.take_order(market, "sell", ask1, size, coin_place, trade_type)
             else:
-                api.take_order(market, "buy", buy1 * 0.95, coin_can_buy, coin_place, trade_type)
+                api.take_order(market, "buy", buy1 * 0.95, coin_can_buy/0.95, coin_place, trade_type)
                 api.take_order(market, "sell", ask1 * 1.05, coin_have, coin_place, trade_type)
                 for i in range(300):
                     time.sleep(1)

@@ -241,7 +241,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                         lowest_buy = price
                         _counter = 0
                         buy_order_list.append(
-                            {"id": id, "pair": (market, "sell", price + min_price_tick/2, size, coin_place),
+                            {"id": id, "pair": (market, "sell", price + min_price_tick, size, coin_place),
                              "self": (market, "buy", price, size, coin_place)})
                     else:
                         _counter +=1
@@ -258,7 +258,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                             higest_ask = price
                             _counter = 0
                             sell_order_list.append(
-                                {"id": id, "pair": (market, "buy", price - min_price_tick/2, size, coin_place),
+                                {"id": id, "pair": (market, "buy", price - min_price_tick, size, coin_place),
                                  "self": (market, "sell", price, size, coin_place)})
                         else:
                             _counter += 1

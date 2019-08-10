@@ -124,6 +124,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
     min_price_tick = 1 / (10 ** api.price_decimal[market])
     small_trade=False if "eth" in market or "ltc" in market else True
     begin_time = time.time()
+    real_time_price_list=list()
     while True:
         try:
             obj = api.get_depth(market)
@@ -169,10 +170,6 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                 cell_num = 100
                 profit_step = 10 * min_price_tick
                 api.take_order(market, "sell", buy1*0.95, coin, coin_place, trade_type)
-            elif current_value-init_value>huge_profit:
-                cell_num = 100
-                profit_step = 10 * min_price_tick
-                api.take_order(market, "buy", ask1 * 1.05, coin, coin_place, trade_type)
             else:
                 cell_num = 20
                 profit_step = 2*min_price_tick
@@ -308,6 +305,31 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                 buy1 = obj["bids"][0 * 2]
                 ask10 = obj["asks"][9 * 2]
                 buy10 = obj["bids"][9 * 2]
+
+                if len(real_time_price_list)>60:
+                    real_time_price_list.remove(real_time_price_list[0])
+                    real_time_price_list.append(buy1)
+                else:
+                    real_time_price_list.append(buy1)
+
+                #risk control
+                if (buy1-min(real_time_price_list))/min(real_time_price_list)>0.03:
+                    print("bull!")
+                    api.cancel_all_pending_order(market,trade_type)
+                    money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
+                    price = ask1*1.05
+                    amount = money/price
+                    api.take_order(market, "buy", price, amount, coin_place, trade_type)
+                    continue
+                elif (max(real_time_price_list)-buy1)/buy1>0.03:
+                    print("bear!")
+                    api.cancel_all_pending_order(market,trade_type)
+                    money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
+                    price = buy*0.95
+                    amount=coin
+                    api.take_order(market, "sell", price, amount, coin_place, trade_type)
+                    continue
+
 
                 if higest_ask<buy1-(10*min_price_tick) or lowest_buy>ask1+(10*min_price_tick):
                     break

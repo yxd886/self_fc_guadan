@@ -122,6 +122,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
     time_local = time.localtime(stamp)
     new_hour = int(time_local.tm_hour)
     min_price_tick = 1 / (10 ** api.price_decimal[market])
+    small_trade=False if "eth" in market or "ltc" in market else True
     while True:
         try:
             obj = api.get_depth(market)
@@ -489,7 +490,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                 money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
                 current_value = (money + freez_money) + (coin + freez_coin) * buy1
                 print("trade_pair:",market,"value loss:",init_value-current_value)
-                if init_value-current_value<tolerant_loss and init_value-current_value>-1*tolerant_loss:
+                if small_trade and init_value-current_value<tolerant_loss and init_value-current_value>-1*tolerant_loss:
                     if money/buy1>min_size:
                         id = api.take_order(market, "buy", buy1, min_size, coin_place, trade_type)
                         if id != "-1":

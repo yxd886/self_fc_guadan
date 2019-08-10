@@ -492,19 +492,20 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                 current_value = (money + freez_money) + (coin + freez_coin) * buy1
                 print("trade_pair:",market,"value loss:",init_value-current_value)
                 print("time spent:",time.time()-begin_time)
-                if small_trade and init_value-current_value<tolerant_loss and init_value-current_value>-1*tolerant_loss:
-                    if money/buy1>min_size:
-                        id = api.take_order(market, "buy", buy1, min_size, coin_place, trade_type)
+                if small_trade and init_value-current_value<tolerant_loss:# and init_value-current_value>-1*tolerant_loss:
+                    small_step=3*min_size
+                    if money/buy1>small_step:
+                        id = api.take_order(market, "buy", buy1, small_step, coin_place, trade_type)
                         if id != "-1":
                             level1_buy_order_list.append(
-                                {"id": id, "pair": (market, "sell", buy1 + profit_step, min_size, coin_place),
-                                 "self": (market, "buy", buy1, min_size, coin_place)})
-                    if coin>min_size:
-                        id = api.take_order(market, "sell", ask1, min_size, coin_place, trade_type)
+                                {"id": id, "pair": (market, "sell", buy1 + profit_step, small_step, coin_place),
+                                 "self": (market, "buy", buy1, small_step, coin_place)})
+                    if coin>small_step:
+                        id = api.take_order(market, "sell", ask1, small_step, coin_place, trade_type)
                         if id != "-1":
                             level1_sell_order_list.append(
-                                {"id": id, "pair": (market, "buy", ask1 - profit_step, min_size, coin_place),
-                                 "self": (market, "sell", ask1, min_size, coin_place)})
+                                {"id": id, "pair": (market, "buy", ask1 - profit_step, small_step, coin_place),
+                                 "self": (market, "sell", ask1, small_step, coin_place)})
 
 
             except Exception as ex:
@@ -567,7 +568,7 @@ def tick(load_access_key, load_access_secret, load_money, load_coin, load_pariti
             thread = threading.Thread(target=buy_main_body,args=(mutex2,api,bidirection,partition,_money,coins[i],min_size[market],money_have/len(markets),coin_place_list[i],account_type))
             thread.setDaemon(True)
             thread.start()
-        time.sleep(7200)
+        time.sleep(10800)
         print("tick exit!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 
     except Exception as ex:
@@ -791,7 +792,7 @@ if __name__ == '__main__':
                 p1.daemon = True
                 p1.start()
                 processes.append(p1)
-        processes[0].join(timeout=7200)
+        processes[0].join(timeout=10800)
         for p in processes:
             p.terminate()
         processes=[]

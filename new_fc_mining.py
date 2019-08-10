@@ -307,7 +307,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                 ask10 = obj["asks"][9 * 2]
                 buy10 = obj["bids"][9 * 2]
 
-                if higest_ask<buy1-(cell_num/2*min_price_tick) or lowest_buy>ask1+(cell_num/2*min_price_tick):
+                if higest_ask<buy1-(10*min_price_tick) or lowest_buy>ask1+(10*min_price_tick):
                     break
                 #print("current ask:%f" % ask1)
                 #print("current buy:%f" % buy1)

@@ -272,7 +272,7 @@ class fcoin_api:
     def is_order_complete(self, market, id, filled_list=None):
         #print(filled_list)
         if filled_list!=None:
-            print("direct return")
+            #print("direct return")
             return (id in filled_list)
         print("search")
         time.sleep(0.2)

@@ -288,7 +288,7 @@ class fcoin_api:
 
         if type=="margin":
             obj = self._api.get_leverage_balance()
-            coin_list = obj["data"]
+            coin_list = obj.get("data",list())
             for item in coin_list:
                 if item["leveraged_account_type"]==(coin+money):
                     res_money = float(item["available_quote_currency_amount"])
@@ -297,7 +297,7 @@ class fcoin_api:
                     res_freez_coin = float(item["frozen_base_currency_amount"])
         else:
             obj = self._api.get_balance()
-            coin_list = obj["data"]
+            coin_list = obj.get("data",list())
             # print(coin_list)
             for item in coin_list:
                 if item["currency"] == money:

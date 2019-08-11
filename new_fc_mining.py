@@ -147,7 +147,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
     huge_profit=init_value*0.01
     profit_step=min_price_tick*3
 
-    price_step = 2 * min_price_tick
+    price_step = min_price_tick
     if "btc" in market:
         price_step = 20 * min_price_tick
     if "eth" in market or "ltc" in market:

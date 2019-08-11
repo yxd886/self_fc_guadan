@@ -128,6 +128,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
 
     add_counter=0
     minus_counter=0
+    global_counter=0
     while True:
         try:
             obj = api.get_depth(market)
@@ -191,6 +192,8 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                         price_step-=min_price_tick
                         price_step = max(price_step,min_price_tick)
                         minus_counter=0
+
+                global_counter+=1
 
                 previous_value = current_value
 
@@ -545,6 +548,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                 if trade_type=="margin":
                     print("trade_pair:",market,"value loss:",init_value-current_value)
                     print("trade_pair:",market,"price step:",price_step/min_price_tick)
+                    print("trade_pair:", market, "global counter:", global_counter)
                     print("trade_pair:", market, "add conuter:", add_counter,"minus_counter",minus_counter)
                 print(market,"time spent:",time.time()-begin_time)
                 if trade_type=="margin" and small_trade and init_value-current_value<tolerant_loss:# and init_value-current_value>-1*tolerant_loss:

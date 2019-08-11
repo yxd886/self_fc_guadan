@@ -141,6 +141,8 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
     huge_profit=init_value*0.01
     profit_step=min_price_tick*3
 
+
+
     if trade_type=="margin":
         money_have = sys.maxsize
     if new_hour == 0:
@@ -167,23 +169,25 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                 money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
                 current_value = (money + freez_money) + (coin + freez_coin) * buy1
                 if init_value-current_value>huge_loss:
-                    cell_num = 100
+                    price_step = max(0.001*buy1,10*min_price_tick)
                     profit_step = 10 * min_price_tick
-                    api.take_order(market, "sell", buy1*0.95, coin, coin_place, trade_type)
+                    #api.take_order(market, "sell", buy1*0.95, coin, coin_place, trade_type)
                 else:
                     cell_num = 20
                     profit_step = 2*min_price_tick
+
+                    price_step = 2 * min_price_tick
+                    if "btc" in market:
+                        price_step = 20 * min_price_tick
+                    if "eth" in market or "ltc" in market:
+                        price_step = 5 * min_price_tick
 
             lowest_buy = buy1
             higest_ask = ask1
 
             #print("trade_pair:%s" % (market))
 
-            price_step = 2*min_price_tick
-            if "btc" in market:
-                price_step = 20*min_price_tick
-            if "eth" in market or "ltc" in market:
-                price_step = 5*min_price_tick
+
 
             base_price = buy1 - (cell_num / 2) * price_step
 

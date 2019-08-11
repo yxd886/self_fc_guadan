@@ -330,8 +330,10 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
         level1_tmp_buy_order_list = list()
         level1_tmp_sell_order_list = list()
         _start_time = time.time()
+        min_timer = time.time()
         while True:
             try:
+
                 obj = api.get_depth(market)
                 ask1 = obj["asks"][0 * 2]
                 buy1 = obj["bids"][0 * 2]
@@ -343,6 +345,12 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                     real_time_price_list.append(buy1)
                 else:
                     real_time_price_list.append(buy1)
+
+                if time.time()-min_timer>60:
+                    min_timer = time.time()
+                    api.take_order(market, "buy", ask1, min_size, _coin_place, trade_type)
+                    api.take_order(market, "sell", buy1, min_size, _coin_place, trade_type)
+
 
                 #risk control
                 bull_ratio = (buy1-min(real_time_price_list))/min(real_time_price_list)

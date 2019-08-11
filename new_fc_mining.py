@@ -517,8 +517,9 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                 money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
 
                 current_value = (money + freez_money) + (coin + freez_coin) * buy1
-                print("trade_pair:",market,"value loss:",init_value-current_value)
-                print("time spent:",time.time()-begin_time)
+                if trade_type=="margin":
+                    print("trade_pair:",market,"value loss:",init_value-current_value)
+                print(market,"time spent:",time.time()-begin_time)
                 if trade_type=="margin" and small_trade and init_value-current_value<tolerant_loss:# and init_value-current_value>-1*tolerant_loss:
                     small_step=3*min_size
                     if money/buy1>small_step:

@@ -122,7 +122,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
     time_local = time.localtime(stamp)
     new_hour = int(time_local.tm_hour)
     min_price_tick = 1 / (10 ** api.price_decimal[market])
-    small_trade=False if "eth" in market or "ltc" in market else True
+    small_trade=False if "eth" in market or "ltc" in market or "btc" in market else True
     begin_time = time.time()
     real_time_price_list=list()
     while True:
@@ -179,12 +179,16 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
 
             #print("trade_pair:%s" % (market))
 
-            base_price = buy1 - (cell_num / 2) * min_price_tick
+            price_step = min_price_tick
+            if "btc" in market:
+                price_step = 5*min_price_tick
+            if "eth" in market or "ltc" in market:
+                price_step = 2*min_price_tick
 
+            base_price = buy1 - (cell_num / 2) * price_step
 
-            remain_coin = coin
             for i in range(cell_num):
-                price = base_price + min_price_tick*i
+                price = base_price + price_step*i
                 price_list.append(price)
             if max(price_list) < ask1:
                 gap = 100

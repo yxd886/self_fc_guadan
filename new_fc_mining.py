@@ -122,9 +122,12 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
     time_local = time.localtime(stamp)
     new_hour = int(time_local.tm_hour)
     min_price_tick = 1 / (10 ** api.price_decimal[market])
-    small_trade=False if "eth" in market or "ltc" in market or "btc" in market else True
+    small_trade=False if "btc" in market else True
     begin_time = time.time()
     real_time_price_list=list()
+
+    add_counter=0
+    minus_conter=0
     while True:
         try:
             obj = api.get_depth(market)
@@ -132,6 +135,8 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
             buy1 = obj["bids"][0 * 2]
             money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
             init_value = (money + freez_money) + (coin + freez_coin) * buy1
+            current_value = init_value
+            previous_value = init_value
             break
         except:
             continue
@@ -141,7 +146,11 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
     huge_profit=init_value*0.01
     profit_step=min_price_tick*3
 
-
+    price_step = 2 * min_price_tick
+    if "btc" in market:
+        price_step = 20 * min_price_tick
+    if "eth" in market or "ltc" in market:
+        price_step = 5 * min_price_tick
 
     if trade_type=="margin":
         money_have = sys.maxsize
@@ -168,6 +177,22 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
             if trade_type=="margin":
                 money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
                 current_value = (money + freez_money) + (coin + freez_coin) * buy1
+
+                if current_value<previous_value:
+                    add_counter+=1
+                    minus_conter=0
+                    if add_counter>=3:
+                        price_step+=min_price_tick
+                        add_counter=0
+                elif current_value>previous_value:
+                    minus_conter+=1
+                    add_counter=0
+                    if minus_conter>=3:
+                        price_step-=min_price_tick
+                        minus_conter=0
+
+                previous_value = current_value
+
                 if init_value-current_value>huge_loss:
                     price_step = max(0.001*buy1,10*min_price_tick)
                     profit_step = 10 * min_price_tick
@@ -176,11 +201,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                     cell_num = 20
                     profit_step = 2*min_price_tick
 
-                    price_step = 2 * min_price_tick
-                    if "btc" in market:
-                        price_step = 20 * min_price_tick
-                    if "eth" in market or "ltc" in market:
-                        price_step = 5 * min_price_tick
+
 
             lowest_buy = buy1
             higest_ask = ask1
@@ -307,7 +328,6 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
         _start_time = time.time()
         while True:
             try:
-
                 obj = api.get_depth(market)
                 ask1 = obj["asks"][0 * 2]
                 buy1 = obj["bids"][0 * 2]
@@ -523,6 +543,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                 current_value = (money + freez_money) + (coin + freez_coin) * buy1
                 if trade_type=="margin":
                     print("trade_pair:",market,"value loss:",init_value-current_value)
+                    print("trade_pair:",market,"price step:",price_step/min_price_tick)
                 print(market,"time spent:",time.time()-begin_time)
                 if trade_type=="margin" and small_trade and init_value-current_value<tolerant_loss:# and init_value-current_value>-1*tolerant_loss:
                     small_step=3*min_size

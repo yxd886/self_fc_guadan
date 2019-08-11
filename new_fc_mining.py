@@ -163,16 +163,16 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
             ask1 = obj["asks"][0 * 2]
             buy1 = obj["bids"][0 * 2]
             #min_price_tick = 0.005*buy1
-
-            money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
-            current_value = (money + freez_money) + (coin + freez_coin) * buy1
-            if init_value-current_value>huge_loss:
-                cell_num = 100
-                profit_step = 10 * min_price_tick
-                api.take_order(market, "sell", buy1*0.95, coin, coin_place, trade_type)
-            else:
-                cell_num = 20
-                profit_step = 2*min_price_tick
+            if trade_type=="margin":
+                money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
+                current_value = (money + freez_money) + (coin + freez_coin) * buy1
+                if init_value-current_value>huge_loss:
+                    cell_num = 100
+                    profit_step = 10 * min_price_tick
+                    api.take_order(market, "sell", buy1*0.95, coin, coin_place, trade_type)
+                else:
+                    cell_num = 20
+                    profit_step = 2*min_price_tick
 
             lowest_buy = buy1
             higest_ask = ask1

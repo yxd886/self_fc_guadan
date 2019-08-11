@@ -139,7 +139,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
     tolerant_loss=init_value*0.004
     huge_loss=init_value*0.01
     huge_profit=init_value*0.01
-    profit_step=min_price_tick*1
+    profit_step=min_price_tick*3
 
     if trade_type=="margin":
         money_have = sys.maxsize
@@ -179,11 +179,11 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
 
             #print("trade_pair:%s" % (market))
 
-            price_step = min_price_tick
+            price_step = 2*min_price_tick
             if "btc" in market:
-                price_step = 5*min_price_tick
+                price_step = 20*min_price_tick
             if "eth" in market or "ltc" in market:
-                price_step = 2*min_price_tick
+                price_step = 5*min_price_tick
 
             base_price = buy1 - (cell_num / 2) * price_step
 

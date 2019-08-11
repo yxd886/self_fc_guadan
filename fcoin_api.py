@@ -324,16 +324,19 @@ class fcoin_api:
             return list()
         id_list  = [item["id"] for item in obj]
         return id_list
-    def cancel_all_pending_order(self,market,account_type="main"):
-        if account_type=="main":
-            obj = self._api.list_orders(symbol=market,states="submitted,partial_filled")
+    def cancel_all_pending_order(self,market,account_type="main",cancel_list=None):
+        if cancel_list==None:
+            if account_type=="main":
+                obj = self._api.list_orders(symbol=market,states="submitted,partial_filled")
+            else:
+                obj = self._api.list_orders(symbol=market, states="submitted,partial_filled",account_type=account_type)
+            print(obj)
+            obj = obj.get("data",None)
+            if not obj:
+                return
+            id_list = [item["id"] for item in obj]
         else:
-            obj = self._api.list_orders(symbol=market, states="submitted,partial_filled",account_type=account_type)
-        print(obj)
-        obj = obj.get("data",None)
-        if not obj:
-            return
-        id_list = [item["id"] for item in obj]
+            id_list = cancel_list
         for id in id_list:
             #time.sleep(0.5)
             self.cancel_order(market,id)

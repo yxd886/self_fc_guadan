@@ -560,6 +560,11 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                             level1_sell_order_list.append(
                                 {"id": id, "pair": (market, "buy", ask1 - profit_step, small_step, coin_place),
                                  "self": (market, "sell", ask1, small_step, coin_place)})
+                if trade_type=="margin" and time.time()-_start_time>120:
+                    api.cancel_all_pending_order(market,trade_type,level1_sell_order_list)
+                    level1_sell_order_list = list()
+                    api.cancel_all_pending_order(market, trade_type, level1_buy_order_list)
+                    level1_buy_order_list = list()
 
 
             except Exception as ex:

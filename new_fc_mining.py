@@ -314,7 +314,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
 
                 #risk control
                 if (buy1-min(real_time_price_list))/min(real_time_price_list)>0.03:
-                    print("bull!")
+                    print(market,"bull!!!!!")
                     api.cancel_all_pending_order(market,trade_type)
                     money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
                     price = ask1*1.05
@@ -322,7 +322,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                     api.take_order(market, "buy", price, amount, coin_place, trade_type)
                     continue
                 elif (max(real_time_price_list)-buy1)/buy1>0.03:
-                    print("bear!")
+                    print(market,"bear!!!!!")
                     api.cancel_all_pending_order(market,trade_type)
                     money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
                     price = buy*0.95
@@ -511,10 +511,11 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
 
 
                 money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
+                trade_amount = freez_money + (coin + freez_coin) * buy1
                 current_value = (money + freez_money) + (coin + freez_coin) * buy1
                 print("trade_pair:",market,"value loss:",init_value-current_value)
                 print("time spent:",time.time()-begin_time)
-                if small_trade and init_value-current_value<tolerant_loss:# and init_value-current_value>-1*tolerant_loss:
+                if trade_amount<money_have and small_trade and init_value-current_value<tolerant_loss:# and init_value-current_value>-1*tolerant_loss:
                     small_step=3*min_size
                     if money/buy1>small_step:
                         id = api.take_order(market, "buy", buy1, small_step, coin_place, trade_type)

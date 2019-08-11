@@ -345,7 +345,9 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                     real_time_price_list.append(buy1)
 
                 #risk control
-                if (buy1-min(real_time_price_list))/min(real_time_price_list)>0.03:
+                bull_ratio = (buy1-min(real_time_price_list))/min(real_time_price_list)
+                bear_ratio = (max(real_time_price_list)-buy1)/buy1
+                if bull_ratio>0.03:
                     print(market,"bull!!!!!")
                     api.cancel_all_pending_order(market,trade_type)
                     money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
@@ -353,7 +355,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                     amount = money/price
                     api.take_order(market, "buy", price, amount, coin_place, trade_type)
                     continue
-                elif (max(real_time_price_list)-buy1)/buy1>0.03:
+                elif bear_ratio>0.03:
                     print(market,"bear!!!!!")
                     api.cancel_all_pending_order(market,trade_type)
                     money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
@@ -361,6 +363,10 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                     amount=coin
                     api.take_order(market, "sell", price, amount, coin_place, trade_type)
                     continue
+
+                print("trade_pair:",market,"bull_ratio:",bull_ratio)
+                print("trade_pair:",market,"bear_ratio:",bear_ratio)
+
 
 
                 if higest_ask<buy1-(10*min_price_tick) or lowest_buy>ask1+(10*min_price_tick):

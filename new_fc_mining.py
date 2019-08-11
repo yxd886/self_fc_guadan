@@ -189,17 +189,18 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                     add_counter=0
                     if minus_counter>=3:
                         price_step-=min_price_tick
+                        price_step = max(price_step,min_price_tick)
                         minus_counter=0
 
                 previous_value = current_value
 
-                if init_value-current_value>huge_loss:
-                    price_step = max(0.001*buy1,10*min_price_tick)
-                    profit_step = 10 * min_price_tick
+                #if init_value-current_value>huge_loss:
+                #    price_step = max(0.001*buy1,10*min_price_tick)
+                #    profit_step = 10 * min_price_tick
                     #api.take_order(market, "sell", buy1*0.95, coin, coin_place, trade_type)
-                else:
-                    cell_num = 20
-                    profit_step = 2*min_price_tick
+                #else:
+                cell_num = 20
+                profit_step = 2*min_price_tick
 
 
 

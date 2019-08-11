@@ -122,7 +122,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
     time_local = time.localtime(stamp)
     new_hour = int(time_local.tm_hour)
     min_price_tick = 1 / (10 ** api.price_decimal[market])
-    small_trade=False if "btc" in market else True
+    small_trade=True
     begin_time = time.time()
     real_time_price_list=list()
 

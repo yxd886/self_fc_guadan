@@ -151,13 +151,11 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
             if buy_id=="-1" and sell_id=="-1":
                 need_cancel=True
                 continue
-
+            complete_order_list = api.get_complete_order_list(market, trade_type)
             if len(level1_buy_order_list) > 0:
                 buy_item = level1_buy_order_list[0]
                 buy_id_to_monitor = buy_item["id"]
                 time.sleep(0.25)
-
-                complete_order_list = api.get_complete_order_list(market,trade_type)
 
                 while api.is_order_complete(market, buy_id_to_monitor,complete_order_list):
                     time.sleep(0.25)

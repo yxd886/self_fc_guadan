@@ -126,6 +126,20 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
         need_cancel=True
         while True:
             try:
+                obj = api.get_depth(market)
+                ask1 = obj["asks"][0 * 2]
+                buy1 = obj["bids"][0 * 2]
+                money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
+                init_value = (money + freez_money) + (coin + freez_coin) * buy1
+                current_value = init_value
+                previous_value = init_value
+                break
+            except:
+                continue
+
+
+        while True:
+            try:
 
                 api.cancel_all_pending_order(market,trade_type)
 
@@ -184,6 +198,12 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                     obj = api.get_depth(market)
                     ask1 = obj["asks"][0 * 2]
                     buy1 = obj["bids"][0 * 2]
+
+                    money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
+                    current_value = (money + freez_money) + (coin + freez_coin) * buy1
+                    if trade_type == "margin":
+                        print("trade_pair:", market, "value loss:", init_value - current_value)
+
                     print("trade_pair",market,"buy1:",buy1,"ask1",ask1)
                     print("trade_pair", market, "buy_lower:", buy_lower, "ask_upper", ask_upper)
                     if ask1>=ask_upper or buy1<=buy_lower:

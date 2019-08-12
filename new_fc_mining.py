@@ -180,7 +180,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                             need_buy=False
 
                 while True:
-                    timme.sleep(0.5)
+                    time.sleep(0.5)
                     obj = api.get_depth(market)
                     ask1 = obj["asks"][0 * 2]
                     buy1 = obj["bids"][0 * 2]

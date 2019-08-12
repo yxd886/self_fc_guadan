@@ -139,29 +139,45 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                 step_coin = min_size
                 buy_id="-1"
                 sell_id="-1"
+                need_buy=True
+                need_sell=True
                 for i in range(6):
                     if coin>min_size:
-                        sell_id = api.take_order(market, "sell", ask1, min_size, coin_place,trade_type)
-                        if sell_id != "-1":
-                            level1_sell_order_list.append(
-                                {"id": sell_id, "pair": (market, "buy", ask1 - min_price_tick, min_size, coin_place),
-                                 "self": (market, "sell", ask1, min_size, coin_place)})
+                        if need_sell:
+                            sell_id = api.take_order(market, "sell", ask1, min_size, coin_place,trade_type)
+                            if sell_id != "-1":
+                                level1_sell_order_list.append(
+                                    {"id": sell_id, "pair": (market, "buy", ask1 - min_price_tick, min_size, coin_place),
+                                     "self": (market, "sell", ask1, min_size, coin_place)})
+                            else:
+                                need_sell=False
                     if money/buy1>min_size:
-                        buy_id = api.take_order(market, "buy", buy1, min_size, coin_place,trade_type)
-                        if buy_id != "-1":
-                            level1_buy_order_list.append(
-                                {"id": buy_id, "pair": (market, "sell", buy1 + min_price_tick, min_size, coin_place),
-                                 "self": (market, "buy", buy1, min_size, coin_place)})
+                        if need_buy:
+                            buy_id = api.take_order(market, "buy", buy1, min_size, coin_place,trade_type)
+                            if buy_id != "-1":
+                                level1_buy_order_list.append(
+                                    {"id": buy_id, "pair": (market, "sell", buy1 + min_price_tick, min_size, coin_place),
+                                     "self": (market, "buy", buy1, min_size, coin_place)})
+                            else:
+                                need_buy=False
                 money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
                 step_money = max(money/5,min_size*buy1)
                 step_coin =max(coin/5,min_size)
                 base_ask = ask1+10*min_price_tick
                 base_buy = buy1-10*min_price_tick
+                need_buy=True
+                need_sell=True
                 for i in range(5):
                     sell_price = base_ask-i*min_price_tick
                     buy_price = base_buy+i*min_price_tick
-                    api.take_order(market, "sell",sell_price, step_coin, coin_place, trade_type)
-                    api.take_order(market, "buy",buy_price, step_money/buy_price, coin_place, trade_type)
+                    if need_sell:
+                        sell_id=api.take_order(market, "sell",sell_price, step_coin, coin_place, trade_type)
+                        if sell_id=="-1":
+                            need_sell=False
+                    if need_buy:
+                        buy_id=api.take_order(market, "buy",buy_price, step_money/buy_price, coin_place, trade_type)
+                        if buy_id=="-1":
+                            need_buy=False
 
                 while True:
                     obj = api.get_depth(market)

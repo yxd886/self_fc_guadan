@@ -115,7 +115,7 @@ def check_and_save(signature):
 
 
 def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_have,coin_place,trade_type="margin"):
-    def others():
+    def others(mutex2,api,bidirection,partition,_money,_coin,min_size,money_have,coin_place,trade_type="margin"):
         market = _coin + _money
         min_price_tick = 1 / (10 ** api.price_decimal[market])
         level1_sell_order_list = list()
@@ -263,7 +263,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                 print(sys.stderr, 'in monitor: ', ex)
                 print("restart in 5 seconds......")
                 time.sleep(5)
-    def btc_process():
+    def btc_process(mutex2,api,bidirection,partition,_money,_coin,min_size,money_have,coin_place,trade_type="margin"):
         need_balance = False
         cell_num = 20
         market = _coin + _money

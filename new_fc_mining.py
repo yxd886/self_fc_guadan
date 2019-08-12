@@ -126,24 +126,24 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
     while True:
         try:
             if need_cancel:
-                api.cancel_all_pending_order(market)
+                api.cancel_all_pending_order(market,trade_type)
                 need_cancel=False
             obj = api.get_depth(market)
             ask1 = obj["asks"][0 * 2]
             buy1 = obj["bids"][0 * 2]
             time.sleep(1)
-            money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin)
+            money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin,trade_type)
             total_value = (coin+freez_coin)*buy1
             buy_id="-1"
             sell_id="-1"
             if coin>min_size:
-                sell_id = api.take_order(market, "sell", ask1, min_size, coin_place)
+                sell_id = api.take_order(market, "sell", ask1, min_size, coin_place,trade_type)
                 if sell_id != "-1":
                     level1_sell_order_list.append(
                         {"id": sell_id, "pair": (market, "buy", ask1 - min_price_tick, min_size, coin_place),
                          "self": (market, "sell", ask1, min_size, coin_place)})
             if money/buy1>min_size:
-                buy_id = api.take_order(market, "buy", buy1, min_size, coin_place)
+                buy_id = api.take_order(market, "buy", buy1, min_size, coin_place,trade_type)
                 if buy_id != "-1":
                     level1_buy_order_list.append(
                         {"id": buy_id, "pair": (market, "sell", buy1 + min_price_tick, min_size, coin_place),
@@ -156,14 +156,17 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                 buy_item = level1_buy_order_list[0]
                 buy_id_to_monitor = buy_item["id"]
                 time.sleep(0.25)
-                while api.is_order_complete(market, buy_id_to_monitor):
+
+                complete_order_list = api.get_complete_order_list(market,trade_type)
+
+                while api.is_order_complete(market, buy_id_to_monitor,complete_order_list):
                     time.sleep(0.25)
                     _market = buy_item["pair"][0]
                     _direction = buy_item["pair"][1]
                     _price = buy_item["pair"][2]
                     _size = buy_item["pair"][3]
                     _coin_place = buy_item["pair"][4]
-                    id = api.take_order(_market, _direction, _price, _size, _coin_place)
+                    id = api.take_order(_market, _direction, _price, _size, _coin_place,trade_type)
                     if id != "-1":
                         level1_tmp_sell_order_list.insert(0,
                                                           {"id": id, "pair": buy_item["self"],
@@ -178,13 +181,13 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                 sell_item = level1_sell_order_list[0]
                 sell_id_to_monitor = sell_item["id"]
                 time.sleep(0.25)
-                while api.is_order_complete(market, sell_id_to_monitor):
+                while api.is_order_complete(market, sell_id_to_monitor,complete_order_list):
                     _market = sell_item["pair"][0]
                     _direction = sell_item["pair"][1]
                     _price = sell_item["pair"][2]
                     _size = sell_item["pair"][3]
                     _coin_place = sell_item["pair"][4]
-                    id = api.take_order(_market, _direction, _price, _size, _coin_place)
+                    id = api.take_order(_market, _direction, _price, _size, _coin_place,trade_type)
                     if id != "-1":
                         level1_tmp_buy_order_list.insert(0,
                                                          {"id": id, "pair": sell_item["self"],
@@ -199,13 +202,13 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                 tmp_buy_item = level1_tmp_buy_order_list[0]
                 tmp_buy_id = tmp_buy_item["id"]
                 time.sleep(0.25)
-                while api.is_order_complete(market, tmp_buy_id):
+                while api.is_order_complete(market, tmp_buy_id,complete_order_list):
                     _market = tmp_buy_item["pair"][0]
                     _direction = tmp_buy_item["pair"][1]
                     _price = tmp_buy_item["pair"][2]
                     _size = tmp_buy_item["pair"][3]
                     _coin_place = tmp_buy_item["pair"][4]
-                    id = api.take_order(_market, _direction, _price, _size, _coin_place)
+                    id = api.take_order(_market, _direction, _price, _size, _coin_place,trade_type)
                     if id != "-1":
                         level1_sell_order_list.insert(0, {"id": id, "pair": tmp_buy_item["self"],
                                                           "self": tmp_buy_item["pair"]})
@@ -219,14 +222,14 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                 tmp_sell_item = level1_tmp_sell_order_list[0]
                 tmp_sell_id = tmp_sell_item["id"]
                 time.sleep(0.25)
-                while api.is_order_complete(market, tmp_sell_id):
+                while api.is_order_complete(market, tmp_sell_id,complete_order_list):
                     time.sleep(0.25)
                     _market = tmp_sell_item["pair"][0]
                     _direction = tmp_sell_item["pair"][1]
                     _price = tmp_sell_item["pair"][2]
                     _size = tmp_sell_item["pair"][3]
                     _coin_place = tmp_sell_item["pair"][4]
-                    id = api.take_order(_market, _direction, _price, _size, _coin_place)
+                    id = api.take_order(_market, _direction, _price, _size, _coin_place,trade_type)
                     if id != "-1":
                         level1_buy_order_list.insert(0, {"id": id, "pair": tmp_sell_item["self"],
                                                          "self": tmp_sell_item["pair"]})

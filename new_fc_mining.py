@@ -142,7 +142,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                     level1_sell_order_list.append(
                         {"id": sell_id, "pair": (market, "buy", ask1 - min_price_tick, min_size, coin_place),
                          "self": (market, "sell", ask1, min_size, coin_place)})
-            if total_value<money_have and money/buy1>min_size:
+            if money/buy1>min_size:
                 buy_id = api.take_order(market, "buy", buy1, min_size, coin_place)
                 if buy_id != "-1":
                     level1_buy_order_list.append(

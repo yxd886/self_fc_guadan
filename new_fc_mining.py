@@ -184,6 +184,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                     ask1 = obj["asks"][0 * 2]
                     buy1 = obj["bids"][0 * 2]
                     print("trade_pair",market,"buy1:",buy1,"ask1",ask1)
+                    print("trade_pair", market, "buy_lower:", buy_lower, "ask_upper", ask_upper)
                     if ask1>=ask_upper or buy1<=buy_lower:
                         break
                     complete_order_list = api.get_complete_order_list(market, trade_type)

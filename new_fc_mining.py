@@ -144,7 +144,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                 for i in range(6):
                     if coin>min_size:
                         if need_sell:
-                            sell_id = api.take_order(market, "sell", ask1, min_size, coin_place,trade_type)
+                            sell_id = api.take_order(market, "sell", ask1+i*min_price_tick, min_size, coin_place,trade_type)
                             if sell_id != "-1":
                                 level1_sell_order_list.append(
                                     {"id": sell_id, "pair": (market, "buy", ask1 - min_price_tick, min_size, coin_place),
@@ -153,7 +153,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                                 need_sell=False
                     if money/buy1>min_size:
                         if need_buy:
-                            buy_id = api.take_order(market, "buy", buy1, min_size, coin_place,trade_type)
+                            buy_id = api.take_order(market, "buy", buy1-i*min_price_tick, min_size, coin_place,trade_type)
                             if buy_id != "-1":
                                 level1_buy_order_list.append(
                                     {"id": buy_id, "pair": (market, "sell", buy1 + min_price_tick, min_size, coin_place),

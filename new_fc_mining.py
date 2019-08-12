@@ -131,7 +131,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
             obj = api.get_depth(market)
             ask1 = obj["asks"][0 * 2]
             buy1 = obj["bids"][0 * 2]
-
+            time.sleep(1)
             money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin)
             total_value = (coin+freez_coin)*buy1
             buy_id="-1"

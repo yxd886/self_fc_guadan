@@ -514,7 +514,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                     else:
                         real_time_price_list.append(buy1)
 
-                    if time.time() - min_timer > 60:
+                    if market!="paxusdt" and time.time() - min_timer > 60:
                         min_timer = time.time()
                         api.take_order(market, "buy", ask1, min_size, _coin_place, trade_type)
                         api.take_order(market, "sell", buy1, min_size, _coin_place, trade_type)

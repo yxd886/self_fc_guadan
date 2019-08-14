@@ -318,10 +318,10 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
         profit_step = min_price_tick * 3
 
         price_step = min_price_tick
-        if "btc" in market:
-            price_step = 20 * min_price_tick
-        if "eth" in market or "ltc" in market:
-            price_step = 5 * min_price_tick
+        if "btc" in _coin:
+            price_step = 10 * min_price_tick
+        if "eth" in _coin or "ltc" in _coin:
+            price_step = 1 * min_price_tick
 
         if trade_type == "margin":
             money_have = sys.maxsize

@@ -542,13 +542,15 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                     print("trade_pair:", market, "bull_ratio:", bull_ratio)
                     print("trade_pair:", market, "bear_ratio:", bear_ratio)
 
-                    if higest_ask < buy1 - (10 * min_price_tick) or lowest_buy > ask1 + (10 * min_price_tick):
+                    if "btc" not in _coin and higest_ask < buy1 - (10 * min_price_tick) or lowest_buy > ask1 + (10 * min_price_tick):
                         break
                     # print("current ask:%f" % ask1)
                     # print("current buy:%f" % buy1)
                     # print("trade_pair:%s" % market)
                     # print("time spent:%f seconds" % (time.time() - _start_time))
                     # print("len of buy_order_list:", len(buy_order_list))
+                    if "btc" in _coin and time.time()-_start_time>300:
+                        break
 
                     complete_order_list = api.get_complete_order_list(market, trade_type)
                     complete_order_list.append("-1")

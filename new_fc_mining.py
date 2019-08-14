@@ -499,6 +499,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
             level1_tmp_sell_order_list = list()
             _start_time = time.time()
             min_timer = time.time()
+            local_time = time.time()
             while True:
                 try:
 
@@ -549,7 +550,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                     # print("trade_pair:%s" % market)
                     # print("time spent:%f seconds" % (time.time() - _start_time))
                     # print("len of buy_order_list:", len(buy_order_list))
-                    if "btc" in _coin and time.time()-_start_time>300:
+                    if "btc" in _coin and time.time()-local_time>300 and higest_ask < buy1 - (10 * min_price_tick) or lowest_buy > ask1 + (10 * min_price_tick):
                         break
 
                     complete_order_list = api.get_complete_order_list(market, trade_type)

@@ -99,7 +99,7 @@ class DataAPI():
         #print(url)
         try:
             with self.sem:
-                r = requests.request(method, url, headers=headers, json=params,timeout=5)
+                r = requests.request(method, url, params=params,timeout=5)
             requests.session().close()
             r.raise_for_status()
         except Exception as err:

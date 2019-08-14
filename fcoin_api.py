@@ -43,6 +43,8 @@ class DataAPI():
         self.key = key
         self.secret = bytes(secret,encoding = "utf8")
         self.mutex = threading.Lock()
+
+        self.sem = threading.Semaphore(5)
     def authorize(self, key='', secret=''):
         self.key = key
         self.secret = bytes(secret,encoding = "utf8")
@@ -78,16 +80,11 @@ class DataAPI():
         #print(url)
 
         try:
-            self.mutex.acquire()
-            r = requests.request(method, url, headers=headers, json=params,timeout=5)
-            self.mutex.release()
+            with self.sem:
+                r = requests.request(method, url, headers=headers, json=params,timeout=5)
             requests.session().close()
             r.raise_for_status()
         except Exception as err:
-            try:
-                self.mutex.release()
-            except:
-                pass
             print(err)
             print(r.text)
             return dict()
@@ -101,16 +98,11 @@ class DataAPI():
         url = url.replace("com", "pro", 1)
         #print(url)
         try:
-            self.mutex.acquire()
-            r = requests.request(method, url, params=params,timeout=5)
-            self.mutex.release()
+            with self.sem:
+                r = requests.request(method, url, headers=headers, json=params,timeout=5)
             requests.session().close()
             r.raise_for_status()
         except Exception as err:
-            try:
-                self.mutex.release()
-            except:
-                pass
             print(err)
         if r.status_code == 200:
             return r.json()

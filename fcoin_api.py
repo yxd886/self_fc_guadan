@@ -44,7 +44,7 @@ class DataAPI():
         self.secret = bytes(secret,encoding = "utf8")
         self.mutex = threading.Lock()
 
-        self.sem = threading.Semaphore(1)
+        self.sem = threading.Semaphore(5)
     def authorize(self, key='', secret=''):
         self.key = key
         self.secret = bytes(secret,encoding = "utf8")

@@ -787,7 +787,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                         if id=="-1":
                             _counter+=1
                         if _counter>=5:
-                            direction="sell"
+                            direction="buy"
                             break
             except:
                 pass

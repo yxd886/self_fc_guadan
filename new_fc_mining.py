@@ -775,7 +775,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                 ask1 = obj["asks"][0 * 2]
                 buy1 = obj["bids"][0 * 2]
                 current_value = (money + freez_money) + (coin + freez_coin) * buy1
-                step_size = max(current_value/buy1/20,min_size)
+                step_size = max(current_value/buy1/40,min_size)
                 _counter=0
                 while True:
                     obj = api.get_depth(market)

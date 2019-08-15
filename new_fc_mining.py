@@ -794,7 +794,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
     if "btc" in _coin:
         trade_mining(mutex2,api,bidirection,partition,_money,_coin,min_size,money_have,coin_place,trade_type)
     else:
-        btc_process(mutex2,api,bidirection,partition,_money,_coin,min_size,money_have,coin_place,trade_type)
+        others(mutex2,api,bidirection,partition,_money,_coin,min_size,money_have,coin_place,trade_type)
         
 
 def load_record():

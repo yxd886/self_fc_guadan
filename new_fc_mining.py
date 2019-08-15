@@ -762,9 +762,37 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                     print(sys.stderr, 'in monitor: ', ex)
                     print("restart in 5 seconds......")
                     time.sleep(5)
-
+    def trade_mining(mutex2,api,bidirection,partition,_money,_coin,min_size,money_have,coin_place,trade_type="margin"):
+        market = _coin+_money
+        direction = "buy"
+        while True:
+            try:
+                _counter=0
+                api.cancel_all_pending_order(market, trade_type)
+                while True:
+                    obj = api.get_depth(market)
+                    ask1 = obj["asks"][0 * 2]
+                    buy1 = obj["bids"][0 * 2]
+                    if direction=="buy":
+                        price = ask1
+                        id=api.take_order(market, direction, price, min_size, coin_place, trade_type)
+                        if id=="-1":
+                            _counter+=1
+                        if _counter>=5:
+                            direction="sell"
+                            break
+                    if direction=="sell":
+                        price = buy1
+                        id=api.take_order(market, direction, price, min_size, coin_place, trade_type)
+                        if id=="-1":
+                            _counter+=1
+                        if _counter>=5:
+                            direction="sell"
+                            break
+            except:
+                pass
     if "btc" in _coin:
-        btc_process(mutex2,api,bidirection,partition,_money,_coin,min_size,money_have,coin_place,trade_type)
+        trade_mining(mutex2,api,bidirection,partition,_money,_coin,min_size,money_have,coin_place,trade_type)
     else:
         btc_process(mutex2,api,bidirection,partition,_money,_coin,min_size,money_have,coin_place,trade_type)
         

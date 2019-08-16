@@ -825,6 +825,9 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
         if trade_type=="margin":
             money_have=sys.maxsize
         try:
+            obj = api.get_depth(market)
+            ask1 = obj["asks"][0 * 2]
+            buy1 = obj["bids"][0 * 2]
             money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
             total_value = (coin + freez_coin) * buy1
             current_value = (money + freez_money) + (coin + freez_coin) * buy1

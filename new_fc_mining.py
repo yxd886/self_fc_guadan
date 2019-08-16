@@ -952,10 +952,67 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                 print(sys.stderr, 'in monitor: ', ex)
                 print("restart in 5 seconds......")
                 time.sleep(5)
+    def safe(mutex2,api,bidirection,partition,_money,_coin,min_size,money_have,coin_place,trade_type="margin"):
+        market = _coin + _money
+        min_price_tick = 1 / (10 ** api.price_decimal[market])
+        _start_time = time.time()
+        while True:
+            try:
+                obj = api.get_depth(market)
+                ask1 = obj["asks"][0 * 2]
+                buy1 = obj["bids"][0 * 2]
+                money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
+                init_value = (money + freez_money) + (coin + freez_coin) * buy1
+                current_value = init_value
+                previous_value = init_value
+                break
+            except:
+                continue
+
+        while True:
+            try:
+
+                api.cancel_all_pending_order(market,trade_type)
+
+                obj = api.get_depth(market)
+                ask1 = obj["asks"][0 * 2]
+                buy1 = obj["bids"][0 * 2]
+                ask_upper = ask1+4*min_price_tick
+                ask_lower = ask1-3*min_price_tick
+                buy_lower = buy1-4*min_price_tick
+                buy_upper = buy1+3*min_price_tick
+                time.sleep(1)
+                money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin,trade_type)
+                step_coin = min_size
+                buy_id="-1"
+                sell_id="-1"
+                need_buy=True
+                need_sell=True
+                step_coin = (coin/3)
+                step_money = min(money_have,money)/3
+                base_ask = ask1+5*min_price_tick
+                base_buy = buy1-5*min_price_tick
+                for i in range(3):
+                    sell_price =  base_ask + i * min_price_tick
+                    buy_price = base_buy - i*min_price_tick
+                    if step_coin >= min_size:
+                        api.take_order(market, "sell",sell_price, step_coin, coin_place, trade_type)
+                    if step_money/buy_price>=min_size:
+                        api.take_order(market, "buy", buy_price, step_money/buy_price, coin_place, trade_type)
+                while True:
+                    time.sleep(1)
+                    obj = api.get_depth(market)
+                    ask1 = obj["asks"][0 * 2]
+                    buy1 = obj["bids"][0 * 2]
+                    if ask1<ask_lower or ask1>ask_upper or buy1<buy_lower or buy1>buy_upper:
+                        break
+            except:
+                continue
+
     if "btc" in _coin:
-        level_one(mutex2,api,bidirection,partition,_money,_coin,min_size,money_have,coin_place,trade_type)
+        safe(mutex2,api,bidirection,partition,_money,_coin,min_size,money_have,coin_place,trade_type)
     else:
-        level_one(mutex2,api,bidirection,partition,_money,_coin,min_size,money_have,coin_place,trade_type)
+        safe(mutex2,api,bidirection,partition,_money,_coin,min_size,money_have,coin_place,trade_type)
         
 
 def load_record():

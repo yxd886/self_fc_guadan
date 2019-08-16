@@ -822,6 +822,8 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
         level1_tmp_sell_order_list = list()
         _start_time = time.time()
         need_cancel = True
+        if trade_type=="margin":
+            money_have=sys.maxsize
         try:
             money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
             total_value = (coin + freez_coin) * buy1

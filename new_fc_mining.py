@@ -839,6 +839,8 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                 buy1 = obj["bids"][0 * 2]
                 buy_id = "-1"
                 sell_id = "-1"
+                money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
+                total_value = (coin + freez_coin) * buy1
                 if coin > step_size:
                     sell_id = api.take_order(market, "sell", ask1, step_size, coin_place,trade_type)
                     if sell_id != "-1":

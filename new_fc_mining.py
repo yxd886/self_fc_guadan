@@ -146,8 +146,10 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                 obj = api.get_depth(market)
                 ask1 = obj["asks"][0 * 2]
                 buy1 = obj["bids"][0 * 2]
-                ask_upper = ask1+5*min_price_tick
-                buy_lower = buy1-5*min_price_tick
+                ask_upper = ask1+4*min_price_tick
+                ask_lower = ask1-3*min_price_tick
+                buy_lower = buy1-4*min_price_tick
+                buy_upper = buy1+3*min_price_tick
                 time.sleep(1)
                 money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin,trade_type)
                 step_coin = min_size
@@ -155,7 +157,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                 sell_id="-1"
                 need_buy=True
                 need_sell=True
-                for i in range(6):
+                for i in range(5):
                     if coin>min_size:
                         if need_sell:
                             sell_id = api.take_order(market, "sell", ask1+i*min_price_tick, min_size, coin_place,trade_type)
@@ -175,13 +177,13 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                             else:
                                 need_buy=False
                 money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
-                step_money = max(money/5,min_size*buy1)
-                step_coin =max(coin/5,min_size)
-                base_ask = ask1+10*min_price_tick
-                base_buy = buy1-10*min_price_tick
+                step_money = max(money/3,min_size*buy1)
+                step_coin =max(coin/3,min_size)
+                base_ask = ask1+7*min_price_tick
+                base_buy = buy1-7*min_price_tick
                 need_buy=True
                 need_sell=True
-                for i in range(5):
+                for i in range(3):
                     sell_price = base_ask-i*min_price_tick
                     buy_price = base_buy+i*min_price_tick
                     if need_sell:
@@ -206,7 +208,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
 
                     print("trade_pair",market,"buy1:",buy1,"ask1",ask1)
                     print("trade_pair", market, "buy_lower:", buy_lower, "ask_upper", ask_upper)
-                    if ask1>=ask_upper or buy1<=buy_lower:
+                    if ask1>ask_upper or ask1<ask_lower or buy1<buy_lower or buy1>buy_upper:
                         break
                     complete_order_list = api.get_complete_order_list(market, trade_type)
                     if len(level1_buy_order_list) > 0:
@@ -1012,7 +1014,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
     if "btc" in _coin:
         btc_process(mutex2,api,bidirection,partition,_money,_coin,min_size,money_have,coin_place,trade_type)
     else:
-        safe(mutex2,api,bidirection,partition,_money,_coin,min_size,money_have,coin_place,trade_type)
+        others(mutex2,api,bidirection,partition,_money,_coin,min_size,money_have,coin_place,trade_type)
         
 
 def load_record():

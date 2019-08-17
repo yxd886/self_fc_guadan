@@ -188,12 +188,13 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                     buy_price = base_buy+i*min_price_tick
                     if need_sell:
                         sell_id=api.take_order(market, "sell",sell_price, step_coin, coin_place, trade_type)
-                        if sell_id=="-1":
-                            need_sell=False
                     if need_buy:
                         buy_id=api.take_order(market, "buy",buy_price, step_money/buy_price, coin_place, trade_type)
-                        if buy_id=="-1":
-                            need_buy=False
+                money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
+                if money/buy_price>=min_size:
+                    buy_id = api.take_order(market, "buy", buy_price, money / buy_price, coin_place, trade_type)
+                if coin>min_size:
+                    sell_id = api.take_order(market, "sell", sell_price, coin, coin_place, trade_type)
 
                 while True:
                     time.sleep(0.5)
@@ -1014,7 +1015,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
     if "btc" in _coin:
         btc_process(mutex2,api,bidirection,partition,_money,_coin,min_size,money_have,coin_place,trade_type)
     else:
-        safe(mutex2,api,bidirection,partition,_money,_coin,min_size,money_have,coin_place,trade_type)
+        others(mutex2,api,bidirection,partition,_money,_coin,min_size,money_have,coin_place,trade_type)
         
 
 def load_record():

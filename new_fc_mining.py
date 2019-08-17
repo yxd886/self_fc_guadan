@@ -1010,7 +1010,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                 continue
 
     if "btc" in _coin:
-        safe(mutex2,api,bidirection,partition,_money,_coin,min_size,money_have,coin_place,trade_type)
+        btc_process(mutex2,api,bidirection,partition,_money,_coin,min_size,money_have,coin_place,trade_type)
     else:
         safe(mutex2,api,bidirection,partition,_money,_coin,min_size,money_have,coin_place,trade_type)
         

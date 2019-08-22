@@ -1295,7 +1295,7 @@ if __name__ == '__main__':
                 p1.daemon = True
                 p1.start()
                 processes.append(p1)
-        processes[0].join(timeout=10800)
+        processes[0].join(timeout=3600)
         for p in processes:
             p.terminate()
         processes=[]

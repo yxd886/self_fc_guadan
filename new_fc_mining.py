@@ -769,17 +769,29 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
         market = _coin+_money
         direction = "buy"
         min_price_tick = 1 / (10 ** api.price_decimal[market])
+        first_time=True
 
         while True:
             try:
                 begin_time=time.time()
                 api.cancel_all_pending_order(market, trade_type)
+                money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
                 obj = api.get_depth(market)
                 ask1 = obj["asks"][0 * 2]
                 buy1 = obj["bids"][0 * 2]
                 ask1_amount = obj["asks"][0 * 2+1]
                 buy1_amount = obj["bids"][0 * 2+1]
                 mining_price = ask1 if ask1_amount<buy1_amount else buy1
+                if first_time:
+                    init_money = money+freez_money+(coin+freez_coin)*buy1
+                    first_time=False
+                current_money = money+freez_money+(coin+freez_coin)*buy1
+                loss = init_money-current_money
+                print("trade_pair:",market,"loss:",loss)
+                if loss>5:
+                    api.take_order(market, "sell", buy1*0.99, coin, coin_place, trade_type)
+                    time.sleep(60)
+                    continue
                 while True:
                     if time.time()-begin_time>60:
                         break
@@ -1059,7 +1071,7 @@ def tick(load_access_key, load_access_secret, load_money, load_coin, load_pariti
             thread = threading.Thread(target=buy_main_body,args=(mutex2,api,bidirection,partition,_money,coins[i],min_size[market],money_have/len(markets),coin_place_list[i],account_type))
             thread.setDaemon(True)
             thread.start()
-        time.sleep(10800)
+        time.sleep(3600)
         print("tick exit!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 
     except Exception as ex:

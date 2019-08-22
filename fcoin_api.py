@@ -290,7 +290,6 @@ class fcoin_api:
             return False
 
     def get_available_balance(self, money, coin,type="main"):
-
         if type=="margin":
             obj = self._api.get_leverage_balance()
             coin_list = obj.get("data",list())

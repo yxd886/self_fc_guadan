@@ -790,7 +790,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                 print("trade_pair:",market,"loss:",loss)
                 if loss>100:
                     if coin>min_size:
-                        api.take_order(market, "sell", ask1+100/coin, coin, coin_place, trade_type)
+                        api.take_order(market, "sell", ask1+loss/coin, coin, coin_place, trade_type)
                     if money/buy1*0.99>min_size:
                         api.take_order(market, "buy", buy1*0.99, money/buy1*0.99, coin_place, trade_type)
                     time.sleep(60)

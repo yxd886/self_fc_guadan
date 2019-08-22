@@ -793,6 +793,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                     time.sleep(60)
                     continue
                 while True:
+                    print("trade_pair:", market, "loss:", loss)
                     if time.time()-begin_time>60:
                         break
                     elif time.time()-begin_time>30:

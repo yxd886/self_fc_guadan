@@ -190,6 +190,9 @@ class DataAPI():
     def get_trades(self, symbol):
         """get detail trade"""
         return self.public_request(GET, self.http_market + 'trades/%s' % symbol)
+    def get_ticker(self,market):
+        return  self.public_request(GET, self.http_market+"ticker/"+market)
+
 
 
 def int2time(timestamp):
@@ -212,6 +215,16 @@ class fcoin_api:
         self.current_buy_order = None
         self.amount_decimal = 2
         self.price_decimal = 2
+    def get_ticker(self,market):
+        obj = self._api.get_ticker(market)
+        obj=obj.get("data",dict()).get("ticker",None)
+        buy1 = obj[2]
+        buy1_amount=obj[3]
+        ask1 = obj[4]
+        ask1_amount=obj[5]
+        average=float(obj[-1])/(24*60)
+
+        return buy1,buy1_amount,ask1,ask1_amount,average
 
 
     def set_demical(self,money,coins):

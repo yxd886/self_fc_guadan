@@ -776,11 +776,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                 begin_time=time.time()
                 api.cancel_all_pending_order(market, trade_type)
                 money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
-                obj = api.get_depth(market)
-                ask1 = obj["asks"][0 * 2]
-                buy1 = obj["bids"][0 * 2]
-                ask1_amount = obj["asks"][0 * 2+1]
-                buy1_amount = obj["bids"][0 * 2+1]
+                buy1,buy1_amount,ask1,ask1_amount,average=api.get_ticker(market)
                 mining_price = ask1 if ask1_amount<buy1_amount else buy1
                 if first_time:
                     init_money = money+freez_money+(coin+freez_coin)*buy1
@@ -799,11 +795,14 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                     api.take_order(market, "sell", ask1 *0.97, coin, coin_place, trade_type)
                     time.sleep(60)
                     continue
+                counter = 0
                 while True:
                     print("trade_pair:", market, "loss:", loss)
+                    print("average:",average)
+                    print("counter:",counter)
                     if time.time()-begin_time>60:
                         break
-                    elif time.time()-begin_time>30:
+                    elif counter>=1.5*average:
                         obj = api.get_depth(market)
                         ask1 = obj["asks"][0 * 2]
                         buy1 = obj["bids"][0 * 2]
@@ -820,8 +819,11 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                         print("coin:",coin)
                         if money/mining_price>min_size:
                             api.take_order(market, "buy", mining_price, money / mining_price, coin_place, trade_type)
+                            counter+=money
                         if coin>min_size:
                             api.take_order(market, "sell", mining_price, coin, coin_place, trade_type)
+                            counter+=coin*mining_price
+
             except:
                 pass
     def level_one(mutex2,api,bidirection,partition,_money,_coin,min_size,money_have,coin_place,trade_type="margin"):

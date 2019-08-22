@@ -772,38 +772,32 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
 
         while True:
             try:
+                begin_time=time.time()
                 api.cancel_all_pending_order(market, trade_type)
-                money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
                 obj = api.get_depth(market)
                 ask1 = obj["asks"][0 * 2]
                 buy1 = obj["bids"][0 * 2]
-                current_value = (money + freez_money) + (coin + freez_coin) * buy1
-                step_size = max(current_value/buy1/40,min_size)
-                _counter=0
+                ask1_amount = obj["asks"][0 * 2+1]
+                buy1_amount = obj["bids"][0 * 2+1]
+                mining_price = ask1 if ask1_amount<buy1_amount else buy1
                 while True:
-                    obj = api.get_depth(market)
-                    ask1 = obj["asks"][0 * 2]
-                    buy1 = obj["bids"][0 * 2]
-                    if direction=="buy":
-                        price = ask1
-                        id=api.take_order(market, "buy", price, step_size, coin_place, trade_type)
-                        if id=="-1":
-                            _counter+=1
-                        else:
-                            api.take_order(market, "sell", price+min_price_tick, step_size, coin_place, trade_type)
-                        if _counter>=5:
-                            direction="sell"
-                            break
-                    if direction=="sell":
-                        price = buy1
-                        id=api.take_order(market, "sell", price, step_size, coin_place, trade_type)
-                        if id=="-1":
-                            _counter+=1
-                        else:
-                            api.take_order(market, "buy", price-min_price_tick, step_size, coin_place, trade_type)
-                        if _counter>=5:
-                            direction="buy"
-                            break
+                    if time.time()-begin_time>60:
+                        break
+                    elif time.time()-begin_time>30:
+                        obj = api.get_depth(market)
+                        ask1 = obj["asks"][0 * 2]
+                        buy1 = obj["bids"][0 * 2]
+                        money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
+                        buy_price =buy1-8*min_price_tick
+                        if money/buy_price>min_size:
+                            api.take_order(market, "buy", buy_price, money/buy_price, coin_place, trade_type)
+                        sell_price = ask1+8*min_price_tick
+                        if coin>min_size:
+                            api.take_order(market, "sell", sell_price, coin, coin_place, trade_type)
+                    else:
+                        money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
+                        api.take_order(market, "buy", mining_price, money / mining_price, coin_place, trade_type)
+                        api.take_order(market, "sell", mining_price, coin, coin_place, trade_type)
             except:
                 pass
     def level_one(mutex2,api,bidirection,partition,_money,_coin,min_size,money_have,coin_place,trade_type="margin"):
@@ -1003,7 +997,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
     if "btc" in _coin:
         level_one(mutex2,api,bidirection,partition,_money,_coin,min_size,money_have,coin_place,trade_type)
     else:
-        level_one(mutex2,api,bidirection,partition,_money,_coin,min_size,money_have,coin_place,trade_type)
+        trade_mining(mutex2,api,bidirection,partition,_money,_coin,min_size,money_have,coin_place,trade_type)
         
 
 def load_record():

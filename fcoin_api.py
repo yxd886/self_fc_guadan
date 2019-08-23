@@ -299,7 +299,7 @@ class fcoin_api:
 
     def filled_amount(self,market,id):
         obj = self.get_order_info(market, id)
-        return obj.get("filled_amount",0)
+        return float(obj.get("filled_amount",0))
 
 
     def is_order_complete(self, market, id, filled_list=None):

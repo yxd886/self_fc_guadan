@@ -838,7 +838,8 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                             api.take_order(market, "sell", mining_price, coin, coin_place, trade_type)
                             counter+=coin*mining_price
 
-            except:
+            except Exception as ex:
+                print(sys.stderr, 'error: ', ex)
                 pass
     def level_one(mutex2,api,bidirection,partition,_money,_coin,min_size,money_have,coin_place,trade_type="margin"):
         need_balance = False

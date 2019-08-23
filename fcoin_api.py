@@ -232,7 +232,7 @@ class fcoin_api:
 
     def get_huobi_price(self,market):
         obj = self._api.get_huobi_price(market)
-        print(obj)
+        #print(obj)
         price = obj.get("tick",dict()).get("close",0)
         return price
 

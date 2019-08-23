@@ -832,11 +832,13 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                             continue
                         money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
                         if money/mining_price>min_size:
-                            api.take_order(market, "buy", mining_price, money / mining_price, coin_place, trade_type)
-                            counter+=money
+                            id=api.take_order(market, "buy", mining_price, money / mining_price, coin_place, trade_type)
+                            if api.is_order_complete(market,id):
+                                counter+=money
                         if coin>min_size:
-                            api.take_order(market, "sell", mining_price, coin, coin_place, trade_type)
-                            counter+=coin*mining_price
+                            id=api.take_order(market, "sell", mining_price, coin, coin_place, trade_type)
+                            if api.is_order_complete(market,id):
+                                counter+=coin*mining_price
 
             except Exception as ex:
                 print(sys.stderr, 'error: ', ex)

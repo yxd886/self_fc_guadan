@@ -822,7 +822,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                     else:
                         buy1, buy1_amount, ask1, ask1_amount, average = api.get_ticker(market)
                         mining_price = ask1 if ask1_amount < buy1_amount else buy1
-                        huobi_price = api.get_huobi_ticker(market)
+                        huobi_price = api.get_huobi_price(market)
                         ratio = abs(huobi_price-buy1)/buy1
                         print("trade_pair:", market, "ratio:", ratio)
                         ratio_list.append(ratio)

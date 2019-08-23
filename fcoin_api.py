@@ -193,6 +193,9 @@ class DataAPI():
     def get_ticker(self,market):
         return  self.public_request(GET, self.http_market+"ticker/"+market)
 
+    def get_huobi_price(self,market):
+        return self.public_request(GET,"https://api.huobi.pro/market/detail/merged?symbol="+market)
+
 
 
 def int2time(timestamp):
@@ -225,6 +228,13 @@ class fcoin_api:
         average=float(obj[-1])/(24*60)
 
         return buy1,buy1_amount,ask1,ask1_amount,average
+
+
+    def get_huobi_price(self,market):
+        obj = self._api.get_huobi_price(market)
+        print(obj)
+        price = obj.get("tick",dict()).get("close",0)
+        return price
 
 
     def set_demical(self,money,coins):
@@ -618,3 +628,6 @@ class fcoin_api:
         return 5*(self.cell_step[index])
 
 
+api = fcoin_api("1","2")
+print(api.get_huobi_price("btcusdt"))
+print(api.get_ticker("btcusdt")[0])

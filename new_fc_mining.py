@@ -770,6 +770,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
         direction = "buy"
         min_price_tick = 1 / (10 ** api.price_decimal[market])
         first_time=True
+        ratio_list = list()
 
         while True:
             try:
@@ -784,17 +785,22 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                 current_money = money+freez_money+(coin+freez_coin)*buy1
                 loss = init_money-current_money
                 print("trade_pair:",market,"loss:",loss)
-                if loss>100:
+                if loss>200:
+                    if coin>min_size:
+                        api.take_order(market, "sell", ask1 *0.97, coin, coin_place, trade_type)
+                    money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
+                    api.take_order(market, "buy", buy1 * 0.99, money / buy1 * 0.99, coin_place, trade_type)
+
+                    time.sleep(60)
+                    continue
+                elif loss>100:
                     if coin>min_size:
                         api.take_order(market, "sell", ask1+loss/coin, coin, coin_place, trade_type)
                     if money/buy1*0.99>min_size:
                         api.take_order(market, "buy", buy1*0.99, money/buy1*0.99, coin_place, trade_type)
                     time.sleep(60)
                     continue
-                if loss>200:
-                    api.take_order(market, "sell", ask1 *0.97, coin, coin_place, trade_type)
-                    time.sleep(60)
-                    continue
+
                 counter = 0
                 while True:
                     print("trade_pair:", market, "loss:", loss)
@@ -814,9 +820,17 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                         if coin>min_size:
                             api.take_order(market, "sell", sell_price, coin, coin_place, trade_type)
                     else:
+                        buy1, buy1_amount, ask1, ask1_amount, average = api.get_ticker(market)
+                        mining_price = ask1 if ask1_amount < buy1_amount else buy1
+                        huobi_price = api.get_huobi_ticker(market)
+                        ratio = abs(huobi_price-buy1)/buy1
+                        print("trade_pair:", market, "ratio:", ratio)
+                        ratio_list.append(ratio)
+                        if len(ratio_list)>120:
+                            ratio_list.remove(ratio_list[0])
+                        if ratio>1.05*(sum(ratio_list)/len(ratio_list)):
+                            continue
                         money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
-                        print("money:",money)
-                        print("coin:",coin)
                         if money/mining_price>min_size:
                             api.take_order(market, "buy", mining_price, money / mining_price, coin_place, trade_type)
                             counter+=money

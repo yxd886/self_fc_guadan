@@ -829,14 +829,18 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                         if ratio>1.05*(sum(ratio_list)/len(ratio_list)):
                             continue
                         money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
+                        id1="-1"
+                        id2="-1"
                         if money/mining_price>min_size:
-                            id=api.take_order(market, "buy", mining_price, money / mining_price, coin_place, trade_type)
-                            if api.is_order_complete(market,id):
-                                counter+=money
+                            id1=api.take_order(market, "buy", mining_price, money / mining_price, coin_place, trade_type)
+
                         if coin>min_size:
-                            id=api.take_order(market, "sell", mining_price, coin, coin_place, trade_type)
-                            if api.is_order_complete(market,id):
-                                counter+=coin*mining_price
+                            id2=api.take_order(market, "sell", mining_price, coin, coin_place, trade_type)
+
+                        if id1!="-1" and api.is_order_complete(market, id1):
+                            counter += money
+                        if id2!="-1" and api.is_order_complete(market, id2):
+                            counter += coin * mining_price
 
             except Exception as ex:
                 print(sys.stderr, 'error: ', ex)

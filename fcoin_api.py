@@ -297,6 +297,11 @@ class fcoin_api:
         obj = self._api.get_order(order_id=id)
         return obj.get("data",None)
 
+    def filled_amount(self,market,id):
+        obj = self.get_order_info(market, id)
+        return obj.get("filled_amount",0)
+
+
     def is_order_complete(self, market, id, filled_list=None):
         #print(filled_list)
         if filled_list!=None:

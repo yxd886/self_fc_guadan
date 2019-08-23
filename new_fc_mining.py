@@ -836,11 +836,12 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
 
                         if coin>min_size:
                             id2=api.take_order(market, "sell", mining_price, coin, coin_place, trade_type)
-
-                        if id1!="-1" and api.is_order_complete(market, id1):
-                            counter += money
-                        if id2!="-1" and api.is_order_complete(market, id2):
-                            counter += coin * mining_price
+                        if id1!="-1":
+                            amount=api.filled_amount(market,id1)
+                            counter += amount*mining_price
+                        if id2!="-1":
+                            amount=api.filled_amount(market,id2)
+                            counter += amount * mining_price
 
             except Exception as ex:
                 print(sys.stderr, 'error: ', ex)

@@ -815,7 +815,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                     print("counter:",counter)
                     if time.time()-begin_time>60:
                         break
-                    elif counter>=average:
+                    elif time.time()-begin_time>45 or counter>=average:
                         api.cancel_all_pending_order(market, trade_type)
                         buy1, buy1_amount, ask1, ask1_amount, average = api.get_ticker(market)
                         money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)

@@ -782,7 +782,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                 ratio = abs(huobi_price - buy1) / buy1
                 print("trade_pair:", market, "ratio:", ratio)
                 ratio_list.append(ratio)
-                if len(ratio_list) > 120:
+                if len(ratio_list) > 20:
                     ratio_list.remove(ratio_list[0])
                 if ratio > (sum(ratio_list) / len(ratio_list)):
                     continue
@@ -797,61 +797,87 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                     if coin>min_size:
                         api.take_order(market, "sell", ask1 *0.97, coin, coin_place, trade_type)
                     money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
+                    guadan_price = buy1*0.99
                     api.take_order(market, "buy", buy1 * 0.99, money / buy1 * 0.99, coin_place, trade_type)
-
-                    time.sleep(60)
-                    continue
-                elif loss>100:
-                    if coin>min_size:
-                        api.take_order(market, "sell", ask1+loss/coin, coin, coin_place, trade_type)
-                    if money/buy1*0.99>min_size:
-                        api.take_order(market, "buy", buy1*0.99, money/buy1*0.99, coin_place, trade_type)
-                    time.sleep(60)
-                    continue
-
-                counter = 0
-                need_cancel= True
-                while True:
-                    print("average:",average)
-                    print("counter:",counter)
-                    if time.time()-begin_time>60:
-                        break
-                    elif time.time()-begin_time>45 or counter>=average:
-                        if need_cancel:
-                            api.cancel_all_pending_order(market, trade_type)
+                    while True:
+                        time.sleep(1)
+                        print("trade_pair:", market, "loss:", loss)
                         buy1, buy1_amount, ask1, ask1_amount, average = api.get_ticker(market)
-                        money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
-                        if money/(coin*buy1+money)>0.53:
-                            amount = (money-(coin*buy1+money)/2)/ask1
-                            api.take_order(market, "buy", ask1,amount, coin_place, trade_type)
-                        elif coin*buy1/(coin*buy1+money)>0.53:
-                            amount = (coin*buy1-(coin*buy1+money)/2)/buy1
-                            api.take_order(market, "sell", buy1,amount, coin_place, trade_type)
+                        buy_bound =buy1- buy1*0.005
+                        print("trade_pair:", market, "buy_bound:", buy_bound)
+                        if guadan_price>buy_bound:
+                            break
+                else:
+                    counter = 0
+                    need_cancel= True
+                    while True:
+                        print("average:",average)
+                        print("counter:",counter)
+                        if time.time()-begin_time>60:
+                            break
+                        elif time.time()-begin_time>45 or counter>=average:
+                            if need_cancel:
+                                api.cancel_all_pending_order(market, trade_type)
+                            buy1, buy1_amount, ask1, ask1_amount, average = api.get_ticker(market)
+                            money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
+                            if money/(coin*buy1+money)>0.8:
+                                amount = (money-(coin*buy1+money)/2)/ask1
+                                api.take_order(market, "buy", ask1,amount, coin_place, trade_type)
+                            elif coin*buy1/(coin*buy1+money)>0.8:
+                                amount = (coin*buy1-(coin*buy1+money)/2)/buy1
+                                api.take_order(market, "sell", buy1,amount, coin_place, trade_type)
+                            else:
+                                need_cancel=False
+                                buy_price =buy1-8*min_price_tick
+                                if money/buy_price>min_size:
+                                    api.take_order(market, "buy", buy_price, money/buy_price, coin_place, trade_type)
+                                sell_price = ask1+8*min_price_tick
+                                if coin>min_size:
+                                    api.take_order(market, "sell", sell_price, coin, coin_place, trade_type)
                         else:
-                            need_cancel=False
-                            buy_price =buy1-8*min_price_tick
-                            if money/buy_price>min_size:
-                                api.take_order(market, "buy", buy_price, money/buy_price, coin_place, trade_type)
-                            sell_price = ask1+8*min_price_tick
-                            if coin>min_size:
-                                api.take_order(market, "sell", sell_price, coin, coin_place, trade_type)
-                    else:
-                        money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
-                        id1="-1"
-                        id2="-1"
-                        amount = min(coin,money/mining_price)
-                        if amount>min_size:
-                            id1=api.take_order(market, "buy", mining_price, amount, coin_place, trade_type)
-                            id2=api.take_order(market, "sell", mining_price, amount, coin_place, trade_type)
-                        if id1!="-1":
-                            amount=api.filled_amount(market,id1)
-                            counter += amount*mining_price
-                        if id2!="-1":
-                            amount=api.filled_amount(market,id2)
-                            counter += amount * mining_price
+                            money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
+                            id1="-1"
+                            id2="-1"
+                            amount = min(coin,money/mining_price)
+                            if amount>min_size:
+                                id1=api.take_order(market, "buy", mining_price, amount, coin_place, trade_type)
+                                id2=api.take_order(market, "sell", mining_price, amount, coin_place, trade_type)
+                            if id1!="-1":
+                                amount=api.filled_amount(market,id1)
+                                counter += amount*mining_price
+                            if id2!="-1":
+                                amount=api.filled_amount(market,id2)
+                                counter += amount * mining_price
 
             except Exception as ex:
                 print(sys.stderr, 'error: ', ex)
+                pass
+
+    def guadan(mutex2,api,bidirection,partition,_money,_coin,min_size,money_have,coin_place,trade_type="margin"):
+        market = _coin+_money
+        if trade_type=="margin":
+            money_have = sys.maxsize
+        while True:
+            try:
+                api.cancel_all_pending_order(market, trade_type)
+                money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
+                buy1, buy1_amount, ask1, ask1_amount, average = api.get_ticker(market)
+                ask_price = ask1 + ask1 * 0.0095
+                if coin > min_size:
+                    api.take_order(market, "ask", ask_price, coin, coin_place, trade_type)
+                buy_price = buy1-buy1*0.0095
+                money = min(money_have,money)
+                if money/buy_price>min_size:
+                    api.take_order(market, "buy", buy_price, money/buy_price, coin_place, trade_type)
+                while True:
+                    time.sleep(1)
+                    buy1, buy1_amount, ask1, ask1_amount, average = api.get_ticker(market)
+                    buy_bound = buy1-buy1*0.005
+                    ask_bound = ask1+ask1*0.005
+                    print("trade_pair:",market,"buy1:",buy1)
+                    if buy_price>buy_bound or ask_price<ask_bound:
+                        break
+            except:
                 pass
     def level_one(mutex2,api,bidirection,partition,_money,_coin,min_size,money_have,coin_place,trade_type="margin"):
         need_balance = False

@@ -7,11 +7,6 @@ import threading
 import base64
 from multiprocessing import Process
 import multiprocessing
-from PIL import Image, ImageTk
-import random
-# import qrcode
-import pyqrcode
-import socket
 
 '''
 采用AES对称加密算法

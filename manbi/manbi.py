@@ -184,6 +184,11 @@ class DataAPI():
         """sell someting"""
         return self.create_order(symbol=symbol, direction='closeLong', orderType='limit', orderPrice=str(orderPrice), quantity=quantity,leverage=leverage)
 
+    def open_short(self, symbol, orderPrice, quantity,leverage="2"):
+        """buy someting"""
+        return self.create_order(symbol=symbol, direction='opensShort', orderType='limit', orderPrice=str(orderPrice), quantity=quantity,leverage=leverage)
+
+
     def get_order(self, order_id):
         """get specfic order"""
         return self.signed_request(GET, self.http_orders + "info?orderId=%s"%(order_id))
@@ -298,9 +303,10 @@ class fcoin_api:
             size = int(size)
             if direction == "buy":
                 obj = self._api.buy(symbol=market, orderPrice=price, quantity=size,leverage=leverage)
-            else:
+            elif direction == "sell":
                 obj = self._api.sell(symbol=market, orderPrice=price, quantity=size,leverage=leverage)
-            print(obj)
+            elif direction=="openshort":
+                obj = self._api.open_short(symbol=market, orderPrice=price, quantity=size,leverage=leverage)
             if obj:
                 break
             else:

@@ -7,6 +7,7 @@ import threading
 import base64
 from multiprocessing import Process
 import multiprocessing
+import time
 
 '''
 采用AES对称加密算法
@@ -114,65 +115,110 @@ def check_and_save():
 
 def buy_main_body(mutex2, api, expire_time, bidirection, partition, _money, _coin, min_size,
                   money_have, leverage):
-    market = _coin + _money
-    market = market.upper()
-    min_price_tick =api.price_decimal[market]
-    _start_time = time.time()
-    while True:
-        try:
-            api.cancel_all_pending_order(market)
+    def paixu(mutex2, api, expire_time, bidirection, partition, _money, _coin, min_size,
+                  money_have, leverage):
 
-            time.sleep(1)
-            money, coin = api.get_available_balance(market)
-            step_coin = (coin / 2)
-            step_money = min(money_have, money) / 2
-            print("step_coin:",step_coin)
-            print("step_money:",step_money)
-            buy1,ask1 = api.get_buy1_and_ask1(market)
-            sell_price1 = ask1 + 3 * min_price_tick
-            sell_price1 = api.price_format(sell_price1, api.price_decimal[market], 1)
-            buy_price1 = buy1 - 3 * min_price_tick
-            buy_price1 = api.price_format(buy_price1, api.price_decimal[market], 1)
+        market = _coin + _money
+        market = market.upper()
+        min_price_tick =api.price_decimal[market]
+        _start_time = time.time()
+        while True:
+            try:
+                api.cancel_all_pending_order(market)
 
-            if step_coin >= min_size:
-                api.take_order(market, "sell", sell_price1, step_coin, leverage)
-            amount_can_buy =  api.amount_can_buy(market,leverage,step_money,buy_price1)
-            if amount_can_buy >= min_size:
-                api.take_order(market, "buy", buy_price1, amount_can_buy,leverage)
-
-            sell_price2 = ask1 + 9 * min_price_tick
-            sell_price2 = api.price_format(sell_price2, api.price_decimal[market], 1)
-            buy_price2 = buy1 - 9 * min_price_tick
-            buy_price2 = api.price_format(buy_price2, api.price_decimal[market], 1)
-
-            if step_coin >= min_size:
-                api.take_order(market, "sell", sell_price2, step_coin, leverage)
-            amount_can_buy = api.amount_can_buy(market,leverage,step_money,buy_price2)
-            if amount_can_buy >= min_size:
-                api.take_order(market, "buy", buy_price2, amount_can_buy,leverage)
-            while True:
                 time.sleep(1)
-                buy1, ask1 = api.get_buy1_and_ask1(market)
-                ask_upper1 = ask1 + 4 * min_price_tick
-                ask_lower1 = ask1 + 1 * min_price_tick
-                buy_lower1 = buy1 - 4 * min_price_tick
-                buy_upper1 = buy1 - 1 * min_price_tick
-                ask_upper2 = ask1 + 14 * min_price_tick
-                ask_lower2 = ask1 + 5 * min_price_tick
-                buy_lower2 = buy1 - 14 * min_price_tick
-                buy_upper2 = buy1 - 5 * min_price_tick
+                money, coin = api.get_available_balance(market)
+                step_coin = (coin / 2)
+                step_money = min(money_have, money) / 2
+                print("step_coin:",step_coin)
+                print("step_money:",step_money)
+                buy1,ask1 = api.get_buy1_and_ask1(market)
+                sell_price1 = ask1 + 3 * min_price_tick
+                sell_price1 = api.price_format(sell_price1, api.price_decimal[market], 1)
+                buy_price1 = buy1 - 3 * min_price_tick
+                buy_price1 = api.price_format(buy_price1, api.price_decimal[market], 1)
 
-                print("ask1:",sell_price1)
-                print("buy1:",buy_price1)
-                print("ask_lower1:",ask_lower1)
-                print("buy_upper1:",buy_upper1)
-                if sell_price1 <= ask_lower1 or sell_price2 > ask_upper2 or buy_price1 > buy_upper1 or buy_price2 < buy_lower2:
-                    break
-        except Exception as err:
-            print(err)
+                if step_coin >= min_size:
+                    api.take_order(market, "sell", sell_price1, step_coin, leverage)
+                amount_can_buy =  api.amount_can_buy(market,leverage,step_money,buy_price1)
+                if amount_can_buy >= min_size:
+                    api.take_order(market, "buy", buy_price1, amount_can_buy,leverage)
 
+                sell_price2 = ask1 + 9 * min_price_tick
+                sell_price2 = api.price_format(sell_price2, api.price_decimal[market], 1)
+                buy_price2 = buy1 - 9 * min_price_tick
+                buy_price2 = api.price_format(buy_price2, api.price_decimal[market], 1)
 
+                if step_coin >= min_size:
+                    api.take_order(market, "sell", sell_price2, step_coin, leverage)
+                amount_can_buy = api.amount_can_buy(market,leverage,step_money,buy_price2)
+                if amount_can_buy >= min_size:
+                    api.take_order(market, "buy", buy_price2, amount_can_buy,leverage)
+                while True:
+                    time.sleep(1)
+                    buy1, ask1 = api.get_buy1_and_ask1(market)
+                    ask_upper1 = ask1 + 4 * min_price_tick
+                    ask_lower1 = ask1 + 1 * min_price_tick
+                    buy_lower1 = buy1 - 4 * min_price_tick
+                    buy_upper1 = buy1 - 1 * min_price_tick
+                    ask_upper2 = ask1 + 14 * min_price_tick
+                    ask_lower2 = ask1 + 5 * min_price_tick
+                    buy_lower2 = buy1 - 14 * min_price_tick
+                    buy_upper2 = buy1 - 5 * min_price_tick
 
+                    print("ask1:",sell_price1)
+                    print("buy1:",buy_price1)
+                    print("ask_lower1:",ask_lower1)
+                    print("buy_upper1:",buy_upper1)
+                    if sell_price1 <= ask_lower1 or sell_price2 > ask_upper2 or buy_price1 > buy_upper1 or buy_price2 < buy_lower2:
+                        break
+            except Exception as err:
+                print(err)
+
+    def guadan(mutex2, api, expire_time, bidirection, partition, _money, _coin, min_size,
+                  money_have, leverage):
+        market = _coin + _money
+        market = market.upper()
+        min_price_tick =api.price_decimal[market]
+        ratios1 = [0.005,0.006,0.007,0.008,0.009]
+        while True:
+            try:
+                buy1,ask1 = api.get_buy1_and_ask1(market)
+                last_buy_level_1 = buy1 - buy1 * ratios1[0]
+                last_sell_level_1 = ask1 + ask1 * ratios1[0]
+                api.cancel_all_pending_order(market)
+                money, coin = api.get_available_balance(market)
+                available_coin = coin
+                available_money = min(money, money_have)
+                coin_for_each_trade = int(available_coin / len(ratios1))
+                money_for_each_trade = available_money / len(ratios1)
+
+                for i, ratio in enumerate(ratios1):
+                    buy_price = buy1 - buy1 * ratio
+                    time.sleep(0.05)
+                    amount_can_buy = api.amount_can_buy(market, leverage, money_for_each_trade, buy_price)
+                    buy_amount = max(min_size, amount_can_buy)
+                    api.take_order(market, "buy", buy_price, buy_amount,leverage)
+
+                sell_amount = (max(coin_for_each_trade, min_size))
+                for i, ratio in enumerate(ratios1):
+                    sell_price = ask1 + ask1 * ratio
+                    time.sleep(0.05)
+                    api.take_order(market, "sell", sell_price, sell_amount, leverage)
+
+                while True:
+                    buy1, ask1 = api.get_buy1_and_ask1(market)
+                    print("trade_pair:",market,"buy:",buy1)
+                    buy_bound = buy1-buy1*0.004
+                    sell_bound = ask1+ask1*0.004
+                    if last_buy_level_1>buy_bound or last_sell_level_1<sell_bound:
+                        break
+
+            except Exception as err:
+                print(err)
+
+    paixu(mutex2, api, expire_time, bidirection, partition, _money, _coin, min_size,
+          money_have, leverage)
 
 def load_record():
     global load_access_key, load_access_secret, load_money, load_coin, load_parition, load_total_money, load_bidirection, load_coin_place

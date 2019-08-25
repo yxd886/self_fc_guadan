@@ -2,7 +2,7 @@ import rsa
 from base64 import b64encode, b64decode
 import os
 import uuid
-from fcoin_api import *
+from manbi import *
 import threading
 import base64
 from multiprocessing import Process

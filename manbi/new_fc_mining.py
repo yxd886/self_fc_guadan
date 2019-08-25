@@ -2,11 +2,9 @@ import rsa
 from base64 import b64encode, b64decode
 import os
 import uuid
-import tkinter
 from fcoin_api import *
 import threading
 import base64
-from Crypto.Cipher import AES
 from multiprocessing import Process
 import multiprocessing
 from PIL import Image, ImageTk

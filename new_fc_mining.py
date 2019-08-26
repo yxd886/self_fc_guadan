@@ -789,11 +789,12 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                 mining_price = ask1 if ask1_amount<buy1_amount else buy1
                 if first_time:
                     init_money = money+freez_money+(coin+freez_coin)*buy1
+                    money_loss = init_money*0.01
                     first_time=False
                 current_money = money+freez_money+(coin+freez_coin)*buy1
                 loss = init_money-current_money
                 print("trade_pair:",market,"loss:",loss)
-                if loss>200:
+                if loss>money_loss:
                     if coin>min_size:
                         api.take_order(market, "sell", ask1 *0.97, coin, coin_place, trade_type)
                     money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)

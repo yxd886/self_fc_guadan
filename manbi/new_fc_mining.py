@@ -207,6 +207,7 @@ def buy_main_body(mutex2, api, expire_time, bidirection, partition, _money, _coi
                     api.take_order(market, "sell", sell_price, sell_amount, leverage)
 
                 while True:
+                    time.sleep(1)
                     buy1, ask1 = api.get_buy1_and_ask1(market)
                     print("trade_pair:",market,"buy:",buy1)
                     buy_bound = buy1-buy1*0.004

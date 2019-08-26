@@ -807,6 +807,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                         print("trade_pair:", market, "buy_bound:", buy_bound)
                         if guadan_price>buy_bound:
                             break
+
                 else:
                     counter = 0
                     need_cancel= True
@@ -877,6 +878,15 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                     print("trade_pair:",market,"buy1:",buy1)
                     if buy_price>buy_bound or ask_price<ask_bound:
                         break
+                    else:
+                        money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
+                        if coin > min_size:
+                            api.take_order(market, "ask", ask_price, coin, coin_place, trade_type)
+                        money = min(money_have, money)
+                        if money / buy_price > min_size:
+                            api.take_order(market, "buy", buy_price, money / buy_price, coin_place, trade_type)
+
+
             except:
                 pass
     def level_one(mutex2,api,bidirection,partition,_money,_coin,min_size,money_have,coin_place,trade_type="margin"):

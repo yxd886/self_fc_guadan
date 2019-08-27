@@ -766,6 +766,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                     print("restart in 5 seconds......")
                     time.sleep(5)
     def trade_mining(mutex2,api,bidirection,partition,_money,_coin,min_size,money_have,coin_place,trade_type="margin"):
+        coin_borrowed = float(partition)
         market = _coin+_money
         direction = "buy"
         min_price_tick = 1 / (10 ** api.price_decimal[market])
@@ -788,10 +789,10 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                     continue
                 mining_price = ask1 if ask1_amount<buy1_amount else buy1
                 if first_time:
-                    init_money = money+freez_money+(coin+freez_coin)*buy1
+                    init_money = money+freez_money+(coin+freez_coin)*buy1-coin_borrowed*buy1
                     money_loss = init_money*0.01
                     first_time=False
-                current_money = money+freez_money+(coin+freez_coin)*buy1
+                current_money = money+freez_money+(coin+freez_coin)*buy1-coin_borrowed*buy1
                 loss = init_money-current_money
                 print("trade_pair:",market,"loss:",loss)
                 if loss>money_loss:
@@ -1354,7 +1355,9 @@ if __name__ == '__main__':
                 total_money = line.split("#")[2]
                 load_money=line.split("#")[3]
                 load_coin=line.split("#")[4]
-                account_type=line.split("#")[5].strip()
+                load_parition = line.split('#')[5]
+                account_type=line.split("#")[6].strip()
+
                 if first_time:
                     first_time=False
                     try:

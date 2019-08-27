@@ -796,18 +796,25 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                 loss = init_money-current_money
                 print("trade_pair:",market,"loss:",loss)
                 if loss>money_loss:
-                    if coin>min_size:
-                        api.take_order(market, "sell", ask1 *0.97, coin, coin_place, trade_type)
+                    coin_need = coin_borrowed-coin
+                    if coin_need>min_size:
+                        api.take_order(market, "buy", ask1 *1.02, coin_need, coin_place, trade_type)
+                    elif coin_need<0-min_size
+                        api.take_order(market, "sell", ask1 *0.97, 0-coin_need, coin_place, trade_type)
                     money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
-                    guadan_price = buy1*0.99
+                    guadan_price_buy = buy1*0.99
+                    guadan_price_sell = ask1*1.01
                     api.take_order(market, "buy", buy1 * 0.99, money / buy1 * 0.99, coin_place, trade_type)
+                    api.take_order(market, "sell", guadan_price_sell, coin, coin_place, trade_type)
+
                     while True:
                         time.sleep(1)
                         print("trade_pair:", market, "loss:", loss)
                         buy1, buy1_amount, ask1, ask1_amount, average = api.get_ticker(market)
                         buy_bound =buy1- buy1*0.005
+                        sell_bound = ask1+ask1*0.005
                         print("trade_pair:", market, "buy_bound:", buy_bound)
-                        if guadan_price>buy_bound:
+                        if guadan_price_buy>buy_bound or guadan_price_sell<sell_bound:
                             break
 
                 else:

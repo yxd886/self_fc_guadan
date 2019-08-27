@@ -235,7 +235,7 @@ def buy_main_body(mutex2, api, expire_time, bidirection, partition, _money, _coi
                 mining_price = ask1 if ask1_amount<buy1_amount else buy1
                 if first_time:
                     init_money = api.get_total_balance()
-                    money_loss = init_money*0.05
+                    money_loss = init_money*0.5
                     first_time=False
                 current_money = api.get_total_balance()
                 loss = init_money-current_money
@@ -257,15 +257,18 @@ def buy_main_body(mutex2, api, expire_time, bidirection, partition, _money, _coi
                         elif counter>=average:
                             time.sleep(1)
                         else:
-                            api.cancel_all_pending_order(market)
+                            id1=id2=id3=id4="-1"
                             buy1, buy1_amount, ask1, ask1_amount, average = api.get_buy1_and_ask1(market)
                             money, coin, short_coin = api.get_available_balance(market)
-                            id1=api.take_order(market, "sell", mining_price, coin, leverage)
-                            id2=api.take_order(market, "closeshort", mining_price, short_coin, leverage)
+                            if coin>min_size:
+                                id1=api.take_order(market, "sell", mining_price, coin, leverage)
+                            if short_coin>min_size:
+                                id2=api.take_order(market, "closeshort", mining_price, short_coin, leverage)
                             money, coin, short_coin = api.get_available_balance(market)
                             amount_can_buy = api.amount_can_buy(market, leverage, money/2, mining_price)
-                            id3 =api.take_order(market, "buy", mining_price, amount_can_buy, leverage)
-                            id4 =api.take_order(market, "openshort", mining_price, amount_can_buy, leverage)
+                            if amount_can_buy>min_size:
+                                id3 =api.take_order(market, "buy", mining_price, amount_can_buy, leverage)
+                                id4 =api.take_order(market, "openshort", mining_price, amount_can_buy, leverage)
                             if id1!="-1":
                                 counter+=api.get_filled_amount(market,id1)
                             if id2!="-1":

@@ -127,12 +127,12 @@ def buy_main_body(mutex2, api, expire_time, bidirection, partition, _money, _coi
                 api.cancel_all_pending_order(market)
 
                 time.sleep(1)
-                money, coin = api.get_available_balance(market)
+                money, coin, short_coin = api.get_available_balance(market)
                 step_coin = (coin / 2)
                 step_money = min(money_have, money) / 2
                 print("step_coin:",step_coin)
                 print("step_money:",step_money)
-                buy1,ask1 = api.get_buy1_and_ask1(market)
+                buy1, buy1_amount, ask1, ask1_amount, average = api.get_buy1_and_ask1(market)
                 sell_price1 = ask1 + 3 * min_price_tick
                 sell_price1 = api.price_format(sell_price1, api.price_decimal[market], 1)
                 buy_price1 = buy1 - 3 * min_price_tick
@@ -156,7 +156,7 @@ def buy_main_body(mutex2, api, expire_time, bidirection, partition, _money, _coi
                     api.take_order(market, "buy", buy_price2, amount_can_buy,leverage)
                 while True:
                     time.sleep(1)
-                    buy1, ask1 = api.get_buy1_and_ask1(market)
+                    buy1, buy1_amount, ask1, ask1_amount, average = api.get_buy1_and_ask1(market)
                     ask_upper1 = ask1 + 4 * min_price_tick
                     ask_lower1 = ask1 + 1 * min_price_tick
                     buy_lower1 = buy1 - 4 * min_price_tick
@@ -183,11 +183,11 @@ def buy_main_body(mutex2, api, expire_time, bidirection, partition, _money, _coi
         ratios1 = [0.005,0.006,0.007,0.008,0.009]
         while True:
             try:
-                buy1,ask1 = api.get_buy1_and_ask1(market)
+                buy1, buy1_amount, ask1, ask1_amount, average = api.get_buy1_and_ask1(market)
                 last_buy_level_1 = buy1 - buy1 * ratios1[0]
                 last_sell_level_1 = ask1 + ask1 * ratios1[0]
                 api.cancel_all_pending_order(market)
-                money, coin = api.get_available_balance(market)
+                money, coin,short_coin = api.get_available_balance(market)
                 available_coin = coin
                 available_money = min(money, money_have)
                 coin_for_each_trade = int(available_coin / len(ratios1))
@@ -208,7 +208,7 @@ def buy_main_body(mutex2, api, expire_time, bidirection, partition, _money, _coi
 
                 while True:
                     time.sleep(1)
-                    buy1, ask1 = api.get_buy1_and_ask1(market)
+                    buy1, buy1_amount, ask1, ask1_amount, average = api.get_buy1_and_ask1(market)
                     print("trade_pair:",market,"buy:",buy1)
                     buy_bound = buy1-buy1*0.004
                     sell_bound = ask1+ask1*0.004
@@ -218,7 +218,75 @@ def buy_main_body(mutex2, api, expire_time, bidirection, partition, _money, _coi
             except Exception as err:
                 print(err)
 
-    paixu(mutex2, api, expire_time, bidirection, partition, _money, _coin, min_size,
+    def jiaoyi(mutex2, api, expire_time, bidirection, partition, _money, _coin, min_size,
+                  money_have, leverage):
+        market = _coin+_money
+        direction = "buy"
+        min_price_tick = 1 / (10 ** api.price_decimal[market])
+        first_time=True
+        ratio_list = list()
+
+        while True:
+            try:
+                begin_time=time.time()
+                api.cancel_all_pending_order(market)
+                money, coin, short_coin= api.get_available_balance(market)
+                buy1, buy1_amount, ask1, ask1_amount, average = api.get_buy1_and_ask1(market)
+                huobi_price = api.get_huobi_price(market)
+                ratio = abs(huobi_price - buy1) / buy1
+                print("trade_pair:", market, "ratio:", ratio)
+                ratio_list.append(ratio)
+                if len(ratio_list) > 20:
+                    ratio_list.remove(ratio_list[0])
+                if ratio > (sum(ratio_list) / len(ratio_list)):
+                    continue
+                mining_price = ask1 if ask1_amount<buy1_amount else buy1
+                if first_time:
+                    init_money = api.get_total_balance()
+                    money_loss = init_money*0.05
+                    first_time=False
+                current_money = api.get_total_balance()
+                loss = init_money-current_money
+                print("trade_pair:",market,"loss:",loss)
+                if loss>money_loss:
+
+                    if coin>min_size:
+                        api.take_order(market, "sell", ask1 *0.97, coin, leverage)
+                    if short_coin>min_size:
+                        api.take_order(market, "closeshort", buy1 *1.03, short_coin, leverage)
+                else:
+                    counter = 0
+                    need_cancel= True
+                    while True:
+                        print("average:",average)
+                        print("counter:",counter)
+                        if time.time()-begin_time>60:
+                            break
+                        elif counter>=average:
+                            time.sleep(1)
+                        else:
+                            buy1, buy1_amount, ask1, ask1_amount, average = api.get_ticker(market)
+                            money, coin, short_coin = api.get_available_balance(market)
+                            id1=api.take_order(market, "sell", mining_price, coin, leverage)
+                            id2=api.take_order(market, "closeshort", mining_price, short_coin, leverage)
+                            money, coin, short_coin = api.get_available_balance(market)
+                            amount_can_buy = api.amount_can_buy(market, leverage, money/2, mining_price)
+                            id3 =api.take_order(market, "buy", mining_price, amount_can_buy, leverage)
+                            id4 =api.take_order(market, "openshort", mining_price, amount_can_buy, leverage)
+                            if id1!="-1":
+                                counter+=api.get_filled_amount(market,id1)
+                            if id2!="-1":
+                                counter+=api.get_filled_amount(market,id2)
+                            if id3!="-1":
+                                counter+=api.get_filled_amount(market,id3)
+                            if id4!="-1":
+                                counter+=api.get_filled_amount(market,id4)
+
+            except Exception as ex:
+                print(sys.stderr, 'error: ', ex)
+                pass
+
+    jiaoyi(mutex2, api, expire_time, bidirection, partition, _money, _coin, min_size,
           money_have, leverage)
 
 def load_record():
@@ -470,8 +538,8 @@ def get_transaction():
 
 def init_sell(api,_money,_coin,coin_place):
     market = _coin+_money
-    buy1, ask1 = api.get_buy1_and_ask1(market)
-    money, coin = api.get_available_balance(market)
+    buy1, ask1,average = api.get_buy1_and_ask1(market)
+    money, coin, short_coin = api.get_available_balance(market)
     if coin>min_size[market]:
         api.take_order(market, "sell", buy1*0.99, coin, coin_place)
         time.sleep(0.5)

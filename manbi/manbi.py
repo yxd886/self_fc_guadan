@@ -152,8 +152,6 @@ class DataAPI():
        # df = pd.DataFrame(js)
         return js
 
-    def get_ticker(self, symbol):
-        return self.public_request(GET, self.http_market + TICKER % symbol)
     def get_kdata(self, freq='M1', symbol='',limit=1):
         js = self.public_request(GET, self.http_market + KDATA % (freq, symbol),limit=limit)
         return js
@@ -186,12 +184,16 @@ class DataAPI():
 
     def open_short(self, symbol, orderPrice, quantity,leverage="2"):
         """buy someting"""
-        return self.create_order(symbol=symbol, direction='opensShort', orderType='limit', orderPrice=str(orderPrice), quantity=quantity,leverage=leverage)
+        return self.create_order(symbol=symbol, direction='openShort', orderType='limit', orderPrice=str(orderPrice), quantity=quantity,leverage=leverage)
+    def close_short(self, symbol, orderPrice, quantity,leverage="2"):
+        """buy someting"""
+        return self.create_order(symbol=symbol, direction='closeShort', orderType='limit', orderPrice=str(orderPrice), quantity=quantity,leverage=leverage)
+
 
 
     def get_order(self, order_id):
         """get specfic order"""
-        return self.signed_request(GET, self.http_orders + "info?orderId=%s"%(order_id))
+        return self.signed_request(GET, self.http_orders + "info?orderId="+order_id)
 
     def cancel_order(self, order_id):
         """cancel specfic order"""
@@ -212,6 +214,8 @@ class DataAPI():
         """get detail trade"""
         return self.public_request(GET, self.http_market + 'trades/%s' % symbol)
 
+    def get_tickers(self):
+        return self.public_request(GET, self.http_market + 'tickers')
 
 def int2time(timestamp):
     timestamp = int(timestamp)
@@ -264,11 +268,17 @@ class fcoin_api:
         #      return None
 
     def get_buy1_and_ask1(self,market):
-        obj = self.get_depth(market)
+        obj = self._api.get_tickers()
+        obj = obj.get("data",dict()).get(market,None)
         if obj==None:
-            return 0,0
+            return 0,0,0,0,0
         else:
-            return float(obj["bids"][0][0]), float(obj["asks"][0][0])
+            buy1 = float(obj["bestBidPrice"])
+            sell1 = float(obj["bestAskPrice"])
+            buy1_amount = float(obj["bestBidVolume"])
+            ask1_amount=float(obj["bestAskVolume"])
+            average = float(obj["volume24h"]) / 24 / 60
+            return buy1,buy1_amount, sell1,ask1_amount,average
 
     def get_two_float(self, price, n):
         f_str = str(price)
@@ -307,13 +317,15 @@ class fcoin_api:
                 obj = self._api.sell(symbol=market, orderPrice=price, quantity=size,leverage=leverage)
             elif direction=="openshort":
                 obj = self._api.open_short(symbol=market, orderPrice=price, quantity=size,leverage=leverage)
+            elif direction=="closeshort":
+                obj = self._api.close_short(symbol=market, orderPrice=price, quantity=size,leverage=leverage)
             if obj:
                 break
             else:
                 time.sleep(1)
                 return "-1"
 
-        id = obj.get("data", "-1")
+        id = obj.get("data", dict()).get("orderId","-1")
         return id
 
     def get_order_info(self, market, id):
@@ -328,6 +340,12 @@ class fcoin_api:
         else:
             return False
 
+    def get_total_balance(self):
+        obj2 = self._api.get_balance()
+        balance = float(obj2.get("data",dict()).get("balance",0))
+        return float(balance)
+
+
     def get_available_balance(self, market):
         obj1 = self._api.get_position(market)
         obj2 = self._api.get_balance()
@@ -336,17 +354,32 @@ class fcoin_api:
         aval_money = float(obj2.get("data",dict()).get("availableBalance",0))
         obj1 = obj1.get("data",None)
         if obj1==None:
-            aval_coins = [0]
+            aval_long_coins = [0]
+            aval_short_coins=[0]
         else:
-            aval_coins = [0 if item["side"]=="short" else float(item["availableQuantity"]) for item in obj1]
-        return aval_money, sum(aval_coins)
+            aval_long_coins = [0 if item["side"]=="short" else float(item["availableQuantity"]) for item in obj1]
+            aval_short_coins = [0 if item["side"]=="long" else float(item["availableQuantity"]) for item in obj1]
+
+        return aval_money, sum(aval_long_coins),sum(aval_short_coins)
 
     def get_buy1_and_sell1(self, market):
-        obj = self.get_depth(market)
-        buy1 = obj["bids"][0][0]
-        sell1 = obj["asks"][0][0]
-        return buy1, sell1
+        obj = self._api.get_tickers()
+        obj = obj.get("data",dict()).get(market,None)
+        if obj==None:
+            obj = self.get_depth(market)
+            buy1 = obj["bids"][0][0]
+            sell1 = obj["asks"][0][0]
+            return buy1, sell1,0
+        else:
+            buy1 = obj["bestBidPrice"]
+            sell1 = obj["bestBidPrice"]
+            average = float(obj["volume24h"])/24/60
+            return buy1, sell1,average
 
+    def get_filled_amount(self,market,id):
+        obj = self.get_order_info(market,id)
+        filled_amount = float(obj.get("filledQuantity",0))
+        return filled_amount
 
     def get_level_one_amount(self,market,side,obj=None):
         if not obj:
@@ -405,42 +438,14 @@ class fcoin_api:
         return obj
 
 
-    def get_total_balance(self):
-        obj = self._api.get_balance()
-        coin_list = obj["data"]
-        #print(coin_list)
-        money =0
-        for item in coin_list:
-            coin = item["currency"]
-            available = float(item["available"])
-            frozen = float(item["frozen"])
-            if available<0.0001 and frozen<0.0001:
-                continue
-            else:
-                time.sleep(0.5)
-                if coin=="usdt":
-                    buy1=1
-                else:
-                    buy1,_=self.get_buy1_and_sell_one(coin+"usdt")
-                money+=(available+frozen)*buy1
-
-        return money
-
-        return res_money, res_coin, res_freez_money, res_freez_coin
 '''
 market = "EOSUSDT"
 leverage=2
 api = fcoin_api("72fd87f800bf04c5c38352dc5135bf29","51da7f964e6b4ca391040adc6ddcad43")
 api.set_demical()
-buy1,ask1 = api.get_buy1_and_ask1(market)
-#print(api.take_order(market,"buy",buy1,1))
-money,coin=api.get_available_balance(market)
-
-amount_can_buy = api.amount_can_buy(market,2,money,buy1)
-print(amount_can_buy)
-
-
-print(api._api.list_orders(symbol=market,states="open"))
-print(api.cancel_order(market,"613409122305814528"))
-
+print(api.get_total_balance())
+buy1,buy1_amount,sell1,sell1_amount,average=api.get_buy1_and_ask1(market)
+id = api.take_order(market,"buy",sell1*1.01,1)
+print(id)
+print(api.get_filled_amount(market,id))
 '''

@@ -232,14 +232,6 @@ def buy_main_body(mutex2, api, expire_time, bidirection, partition, _money, _coi
                 api.cancel_all_pending_order(market)
                 money, coin, short_coin= api.get_available_balance(market)
                 buy1, buy1_amount, ask1, ask1_amount, average = api.get_buy1_and_ask1(market)
-                huobi_price = api.get_huobi_price(market)
-                ratio = abs(huobi_price - buy1) / buy1
-                print("trade_pair:", market, "ratio:", ratio)
-                ratio_list.append(ratio)
-                if len(ratio_list) > 20:
-                    ratio_list.remove(ratio_list[0])
-                if ratio > (sum(ratio_list) / len(ratio_list)):
-                    continue
                 mining_price = ask1 if ask1_amount<buy1_amount else buy1
                 if first_time:
                     init_money = api.get_total_balance()

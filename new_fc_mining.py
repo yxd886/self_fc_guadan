@@ -840,7 +840,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                             money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
                             id1="-1"
                             id2="-1"
-                            amount = min(coin,money/mining_price)
+                            amount = min(coin,money/mining_price,average/mining_price)
                             if amount>min_size:
                                 id1=api.take_order(market, "buy", mining_price, amount, coin_place, trade_type)
                                 id2=api.take_order(market, "sell", mining_price, amount, coin_place, trade_type)

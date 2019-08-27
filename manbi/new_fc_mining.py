@@ -257,7 +257,7 @@ def buy_main_body(mutex2, api, expire_time, bidirection, partition, _money, _coi
                         elif counter>=average:
                             time.sleep(1)
                         else:
-                            buy1, buy1_amount, ask1, ask1_amount, average = api.get_ticker(market)
+                            buy1, buy1_amount, ask1, ask1_amount, average = api.get_buy1_and_ask1(market)
                             money, coin, short_coin = api.get_available_balance(market)
                             id1=api.take_order(market, "sell", mining_price, coin, leverage)
                             id2=api.take_order(market, "closeshort", mining_price, short_coin, leverage)

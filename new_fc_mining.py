@@ -801,10 +801,11 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                         api.take_order(market, "buy", ask1 *1.02, coin_need, coin_place, trade_type)
                     elif coin_need<0-min_size:
                         api.take_order(market, "sell", ask1 *0.97, 0-coin_need, coin_place, trade_type)
+                    time.sleep(5)
                     money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
                     guadan_price_buy = buy1*0.99
                     guadan_price_sell = ask1*1.01
-                    api.take_order(market, "buy", buy1 * 0.99, money / buy1 * 0.99, coin_place, trade_type)
+                    api.take_order(market, "buy", buy1 * 0.99, money / (buy1 * 0.99), coin_place, trade_type)
                     api.take_order(market, "sell", guadan_price_sell, coin, coin_place, trade_type)
 
                     while True:

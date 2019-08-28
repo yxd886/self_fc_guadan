@@ -790,7 +790,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                 mining_price = ask1 if ask1_amount<buy1_amount else buy1
                 if first_time:
                     init_money = money+freez_money+(coin+freez_coin)*buy1-coin_borrowed*buy1
-                    money_loss = init_money*0.05
+                    money_loss = 250
                     first_time=False
                 current_money = money+freez_money+(coin+freez_coin)*buy1-coin_borrowed*buy1
                 loss = init_money-current_money

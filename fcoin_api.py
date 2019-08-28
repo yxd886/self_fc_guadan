@@ -632,7 +632,8 @@ class fcoin_api:
         # print("coin_should_have:%f" % self.cell_money[index])
         return 5*(self.cell_step[index])
 
-
+'''
 api = fcoin_api("1","2")
 print(api.get_huobi_price("btcusdt"))
 print(api.get_ticker("btcusdt")[0])
+'''

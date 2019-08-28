@@ -7,6 +7,7 @@ import threading
 import base64
 from multiprocessing import Process
 import multiprocessing
+import datetime
 
 import random
 import socket
@@ -772,9 +773,15 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
         min_price_tick = 1 / (10 ** api.price_decimal[market])
         first_time=True
         ratio_list = list()
-
+        no_force=True
         while True:
             try:
+                now  = datetime.datetime.now()
+                hour = now.hour
+                if str(hour)=="23" and no_force:
+                    no_force=False
+                    force_trade(api,_money,_coin,coin_place,trade_type)
+
                 begin_time=time.time()
                 api.cancel_all_pending_order(market, trade_type)
                 money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
@@ -869,7 +876,44 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                 print(sys.stderr, 'error: ', ex)
                 pass
 
-    def guadan(mutex2,api,bidirection,partition,_money,_coin,min_size,money_have,coin_place,trade_type="margin"):
+    def force_trade(api,_money, _coin, coin_place,trade_type):
+        market =_coin+_money
+        buy1, buy1_amount, ask1, ask1_amount, average = api.get_ticker(market)
+        amount_need = average*24*60
+        counter = 0
+        while True:
+            try:
+                api.cancel_all_pending_order(market, trade_type)
+                money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
+                buy1, buy1_amount, ask1, ask1_amount, average = api.get_ticker(market)
+                if counter>amount_need:
+                    return
+                if money / (coin * buy1 + money) > 0.8:
+                    amount = (money - (coin * buy1 + money) / 2) / ask1
+                    api.take_order(market, "buy", ask1, amount, coin_place, trade_type)
+                elif coin * buy1 / (coin * buy1 + money) > 0.8:
+                    amount = (coin * buy1 - (coin * buy1 + money) / 2) / buy1
+                    api.take_order(market, "sell", buy1, amount, coin_place, trade_type)
+                else:
+                    buy1, buy1_amount, ask1, ask1_amount, average = api.get_ticker(market)
+                    mining_price = ask1 if ask1_amount < buy1_amount else buy1
+                    amount = min(coin, money / mining_price)
+                    if amount > min_size:
+                        id1 = api.take_order(market, "buy", mining_price, amount, coin_place, trade_type)
+                        id2 = api.take_order(market, "sell", mining_price, amount, coin_place, trade_type)
+                    if id1 != "-1":
+                        amount = api.filled_amount(market, id1)
+                        counter += amount * mining_price
+                    if id2 != "-1":
+                        amount = api.filled_amount(market, id2)
+                        counter += amount * mining_price
+                    api.cancel_all_pending_order(market, trade_type)
+
+
+            except Exception as ex:
+                print(sys.stderr, 'error: ', ex)
+
+        def guadan(mutex2,api,bidirection,partition,_money,_coin,min_size,money_have,coin_place,trade_type="margin"):
         market = _coin+_money
         if trade_type=="margin":
             money_have = sys.maxsize

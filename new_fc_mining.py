@@ -778,7 +778,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
             try:
                 now  = datetime.datetime.now()
                 hour = now.hour
-                if str(hour)=="23" and no_force:
+                if str(hour)=="13" and no_force:
                     no_force=False
                     force_trade(api,_money,_coin,coin_place,trade_type)
 
@@ -881,11 +881,18 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
         buy1, buy1_amount, ask1, ask1_amount, average = api.get_ticker(market)
         amount_need = average*24*60
         counter = 0
+        money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
+        buy1, buy1_amount, ask1, ask1_amount, average = api.get_ticker(market)
+        init_money = money + freez_money + (coin + freez_coin) * buy1
+
         while True:
             try:
                 api.cancel_all_pending_order(market, trade_type)
                 money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
                 buy1, buy1_amount, ask1, ask1_amount, average = api.get_ticker(market)
+                current_money = money + freez_money + (coin + freez_coin) * buy1
+                print("money_loss:",init_money-current_money)
+                print("counter:",counter)
                 if counter>amount_need:
                     return
                 if money / (coin * buy1 + money) > 0.8:
@@ -913,7 +920,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
             except Exception as ex:
                 print(sys.stderr, 'error: ', ex)
 
-        def guadan(mutex2,api,bidirection,partition,_money,_coin,min_size,money_have,coin_place,trade_type="margin"):
+    def guadan(mutex2,api,bidirection,partition,_money,_coin,min_size,money_have,coin_place,trade_type="margin"):
         market = _coin+_money
         if trade_type=="margin":
             money_have = sys.maxsize

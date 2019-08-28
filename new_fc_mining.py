@@ -829,7 +829,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                     counter = 0
                     need_cancel= True
                     while True:
-                        print("average:",average)
+                        #print("average:",average)
                         print("counter:",counter)
                         if time.time()-begin_time>60:
                             break

@@ -892,7 +892,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                 buy1, buy1_amount, ask1, ask1_amount, average = api.get_ticker(market)
                 current_money = money + freez_money + (coin + freez_coin) * buy1
                 print("money_loss:",init_money-current_money)
-                print("counter:",counter)
+                print("counter/target:",counter,"/",amount_need)
                 if counter>amount_need:
                     return
                 if money / (coin * buy1 + money) > 0.8:

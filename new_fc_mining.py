@@ -790,7 +790,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                 mining_price = ask1 if ask1_amount<buy1_amount else buy1
                 if first_time:
                     init_money = money+freez_money+(coin+freez_coin)*buy1-coin_borrowed*buy1
-                    money_loss = init_money*0.01
+                    money_loss = init_money*0.05
                     first_time=False
                 current_money = money+freez_money+(coin+freez_coin)*buy1-coin_borrowed*buy1
                 loss = init_money-current_money
@@ -831,10 +831,10 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                                 api.cancel_all_pending_order(market, trade_type)
                             buy1, buy1_amount, ask1, ask1_amount, average = api.get_ticker(market)
                             money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
-                            if money/(coin*buy1+money)>0.8:
+                            if money/(coin*buy1+money)>0.65:
                                 amount = (money-(coin*buy1+money)/2)/ask1
                                 api.take_order(market, "buy", ask1,amount, coin_place, trade_type)
-                            elif coin*buy1/(coin*buy1+money)>0.8:
+                            elif coin*buy1/(coin*buy1+money)>0.65:
                                 amount = (coin*buy1-(coin*buy1+money)/2)/buy1
                                 api.take_order(market, "sell", buy1,amount, coin_place, trade_type)
                             else:
@@ -849,6 +849,8 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                             money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
                             id1="-1"
                             id2="-1"
+                            buy1, buy1_amount, ask1, ask1_amount, average = api.get_ticker(market)
+                            mining_price = ask1 if ask1_amount < buy1_amount else buy1
                             amount = min(coin,money/mining_price)
                             if amount>min_size:
                                 id1=api.take_order(market, "buy", mining_price, amount, coin_place, trade_type)
@@ -859,6 +861,9 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                             if id2!="-1":
                                 amount=api.filled_amount(market,id2)
                                 counter += amount * mining_price
+                            api.cancel_all_pending_order(market, trade_type)
+
+
 
             except Exception as ex:
                 print(sys.stderr, 'error: ', ex)

@@ -941,8 +941,10 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                     buy1, buy1_amount, ask1, ask1_amount, average = api.get_ticker(market)
                     buy_bound = buy1-buy1*0.005
                     ask_bound = ask1+ask1*0.005
+                    buy_low_bound = buy1-buy1*0.01
+                    ask_high_bound = ask1 + ask1 * 0.01
                     print("trade_pair:",market,"buy1:",buy1)
-                    if buy_price>buy_bound or ask_price<ask_bound:
+                    if buy_price>buy_bound or ask_price<ask_bound or buy_price<buy_low_bound or ask_price>ask_high_bound:
                         break
                     else:
                         money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
@@ -1153,7 +1155,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
         level_one(mutex2,api,bidirection,partition,_money,_coin,min_size,money_have,coin_place,trade_type)
     else:
         trade_mining(mutex2,api,bidirection,partition,_money,_coin,min_size,money_have,coin_place,trade_type)
-        
+
 
 def load_record():
     global load_access_key,load_access_secret,load_money,load_coin,load_parition,load_total_money,load_bidirection,load_coin_place

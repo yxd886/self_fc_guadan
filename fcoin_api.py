@@ -250,9 +250,9 @@ class fcoin_api:
             self.limit_amount_min[coin+money] = float(obj1["limit_amount_min"])
 
         return self.limit_amount_min
-    def get_depth(self, market):
+    def get_depth(self, market,level="L20"):
         # try:
-        obj = self._api.get_depth("L20",market)
+        obj = self._api.get_depth(level,market)
         return obj.get("data",None)
         #  except Exeption as ex:
         #      print(sys.stderr, 'zb query_account exception,', ex)

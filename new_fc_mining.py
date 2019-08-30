@@ -773,7 +773,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
         min_price_tick = 1 / (10 ** api.price_decimal[market])
         first_time=True
         ratio_list = list()
-        no_force=True
+        no_force=False
         while True:
             try:
                 now  = datetime.datetime.now()
@@ -788,7 +788,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                 buy1,buy1_amount,ask1,ask1_amount,average=api.get_ticker(market)
                 huobi_price = api.get_huobi_price(market)
                 ratio = abs(huobi_price - buy1) / buy1
-                print("trade_pair:", market, "ratio:", ratio)
+                #print("trade_pair:", market, "ratio:", ratio)
                 ratio_list.append(ratio)
                 if len(ratio_list) > 20:
                     ratio_list.remove(ratio_list[0])
@@ -797,7 +797,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                 mining_price = ask1 if ask1_amount<buy1_amount else buy1
                 if first_time:
                     init_money = money+freez_money+(coin+freez_coin)*buy1-coin_borrowed*buy1
-                    money_loss = 250
+                    money_loss = init_money*0.2
                     first_time=False
                 current_money = money+freez_money+(coin+freez_coin)*buy1-coin_borrowed*buy1
                 loss = init_money-current_money
@@ -830,7 +830,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                     need_cancel= True
                     while True:
                         #print("average:",average)
-                        print("counter:",counter)
+                        #print("counter:",counter)
                         if time.time()-begin_time>60:
                             break
                         elif time.time()-begin_time>45 or counter>=average:
@@ -1189,7 +1189,7 @@ def tick(load_access_key, load_access_secret, load_money, load_coin, load_pariti
         markets = [_coin+_money for _coin in coins]
         print(markets)
         partition = int(load_parition.strip())
-        assert(partition!=0)
+        #assert(partition!=0)
         money_have = float(load_total_money.strip())
 
 

@@ -362,7 +362,7 @@ class fcoin_api:
                 obj = self._api.list_orders(symbol=market,states="submitted,partial_filled")
             else:
                 obj = self._api.list_orders(symbol=market, states="submitted,partial_filled",account_type=account_type)
-            print(obj)
+            #print(obj)
             obj = obj.get("data",None)
             if not obj:
                 return

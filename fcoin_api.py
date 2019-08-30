@@ -271,8 +271,8 @@ class fcoin_api:
         while True:
             size = self.get_two_float(size,self.amount_decimal[market])
             price=self.get_two_float(price,self.price_decimal[market])
-            print(size)
-            print(price)
+            #print(size)
+            #print(price)
             if direction == "buy":
                 if account_type=="margin":
                     obj = self._api.buy(symbol=market, price=price, amount=size,exchange=place,account_type=account_type)

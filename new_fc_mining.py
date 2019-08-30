@@ -773,14 +773,14 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
         min_price_tick = 1 / (10 ** api.price_decimal[market])
         first_time=True
         ratio_list = list()
-        no_force=False
+        no_force=True
         while True:
             try:
                 now  = datetime.datetime.now()
                 hour = now.hour
-                if str(hour)=="13" and no_force:
+                if True and no_force:
                     no_force=False
-                    force_trade(api,_money,_coin,coin_place,trade_type)
+                    force_trade(api,_money,_coin,coin_place,trade_type,mutex2)
 
                 begin_time=time.time()
                 api.cancel_all_pending_order(market, trade_type)
@@ -877,12 +877,27 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
             except Exception as ex:
                 print(sys.stderr, 'error: ', ex)
                 pass
+    def count_amount(api,id1,id2,mutex2):
+        global global_counter
+        mutex2.acquire()
+        counter = global_counter
+        mutex2.release()
+        if id1 != "-1":
+            amount = api.filled_amount(market, id1)
+            counter += amount * mining_price
+        if id2 != "-1":
+            amount = api.filled_amount(market, id2)
+            counter += amount * mining_price
+        mutex2.acquire()
+        global_counter=counter
+        mutex2.release()
 
-    def force_trade(api,_money, _coin, coin_place,trade_type):
+
+    def force_trade(api,_money, _coin, coin_place,trade_type,mutex2):
+        global global_counter
         market =_coin+_money
         buy1, buy1_amount, ask1, ask1_amount, average = api.get_ticker(market)
         amount_need = average*24*60
-        counter = 0
         money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
         buy1, buy1_amount, ask1, ask1_amount, average = api.get_ticker(market)
         init_money = money + freez_money + (coin + freez_coin) * buy1
@@ -894,8 +909,11 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                 buy1, buy1_amount, ask1, ask1_amount, average = api.get_ticker(market)
                 current_money = money + freez_money + (coin + freez_coin) * buy1
                 print("money_loss:",init_money-current_money)
-                print("counter/target:",counter,"/",amount_need)
-                if counter>amount_need:
+                mutex2.acquire()
+                local_counter = global_counter
+                mutex2.release()
+                print("counter/target:",local_counter,"/",amount_need)
+                if local_counter>amount_need:
                     return
                 if money / (coin * buy1 + money) > 0.8:
                     amount = (money - (coin * buy1 + money) / 2) / ask1
@@ -907,17 +925,13 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                     buy1, buy1_amount, ask1, ask1_amount, average = api.get_ticker(market)
                     mining_price = ask1 if ask1_amount < buy1_amount else buy1
                     amount = min(coin, money / mining_price)
+                    id1=id2="-1"
                     if amount > min_size:
                         id1 = api.take_order(market, "buy", mining_price, amount, coin_place, trade_type)
                         id2 = api.take_order(market, "sell", mining_price, amount, coin_place, trade_type)
-                    if id1 != "-1":
-                        amount = api.filled_amount(market, id1)
-                        counter += amount * mining_price
-                    if id2 != "-1":
-                        amount = api.filled_amount(market, id2)
-                        counter += amount * mining_price
-                    api.cancel_all_pending_order(market, trade_type)
-
+                    thread = threading.Thread(target=count_amount, args=(api,id1,id2,mutex2))
+                    thread.setDaemon(True)
+                    thread.start()
 
             except Exception as ex:
                 print(sys.stderr, 'error: ', ex)
@@ -1174,7 +1188,7 @@ def load_record():
         load_bidirection = parameters[6]
         load_coin_place = parameters[7]
 
-
+global_counter=0
 
 
 def tick(load_access_key, load_access_secret, load_money, load_coin, load_parition, load_total_money, load_bidirection, load_coin_place,account_type="main"):

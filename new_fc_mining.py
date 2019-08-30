@@ -877,7 +877,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
             except Exception as ex:
                 print(sys.stderr, 'error: ', ex)
                 pass
-    def count_amount(api,market,id1,id2,mutex2):
+    def count_amount(api,market,mining_price,id1,id2,mutex2):
         global global_counter
         mutex2.acquire()
         counter = global_counter
@@ -929,7 +929,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                     if amount > min_size:
                         id1 = api.take_order(market, "buy", mining_price, amount, coin_place, trade_type)
                         id2 = api.take_order(market, "sell", mining_price, amount, coin_place, trade_type)
-                    thread = threading.Thread(target=count_amount, args=(api,market,id1,id2,mutex2))
+                    thread = threading.Thread(target=count_amount, args=(api,market,mining_price,id1,id2,mutex2))
                     thread.setDaemon(True)
                     thread.start()
 

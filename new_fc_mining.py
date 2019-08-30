@@ -848,10 +848,10 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                                     api.take_order(market, "sell", buy1,amount, coin_place, trade_type)
                             else:
                                 need_cancel=False
-                                buy_price =buy1-8*min_price_tick
+                                buy_price =buy1-buy1*0.01
                                 if money/buy_price>min_size:
                                     api.take_order(market, "buy", buy_price, money/buy_price, coin_place, trade_type)
-                                sell_price = ask1+8*min_price_tick
+                                sell_price = ask1+ask1*0.01
                                 if coin>min_size:
                                     api.take_order(market, "sell", sell_price, coin, coin_place, trade_type)
                         else:

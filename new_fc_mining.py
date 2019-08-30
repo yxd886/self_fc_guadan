@@ -840,10 +840,12 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                             money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
                             if money/(coin*buy1+money)>0.65:
                                 amount = (money-(coin*buy1+money)/2)/ask1
-                                api.take_order(market, "buy", ask1,amount, coin_place, trade_type)
+                                if amount>min_size:
+                                    api.take_order(market, "buy", ask1,amount, coin_place, trade_type)
                             elif coin*buy1/(coin*buy1+money)>0.65:
                                 amount = (coin*buy1-(coin*buy1+money)/2)/buy1
-                                api.take_order(market, "sell", buy1,amount, coin_place, trade_type)
+                                if amount>min_size:
+                                    api.take_order(market, "sell", buy1,amount, coin_place, trade_type)
                             else:
                                 need_cancel=False
                                 buy_price =buy1-8*min_price_tick

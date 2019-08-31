@@ -778,7 +778,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
             try:
                 now  = datetime.datetime.now()
                 hour = now.hour
-                if True and no_force:
+                if False and no_force:
                     no_force=False
                     force_trade(api,_money,_coin,coin_place,trade_type,mutex2)
 
@@ -1005,18 +1005,19 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                 total_value = (coin + freez_coin) * buy1
                 buy_id = "-1"
                 sell_id = "-1"
-                if coin > min_size:
-                    sell_id = api.take_order(market, "sell", ask1, min_size, coin_place,trade_type)
+                amount =max(20/buy1,min_size)
+                if coin > amount:
+                    sell_id = api.take_order(market, "sell", ask1, amount, coin_place,trade_type)
                     if sell_id != "-1":
                         level1_sell_order_list.append(
-                            {"id": sell_id, "pair": (market, "buy", ask1 - min_price_tick, min_size, coin_place),
-                             "self": (market, "sell", ask1, min_size, coin_place)})
-                if total_value < money_have and money / buy1 > min_size:
-                    buy_id = api.take_order(market, "buy", buy1, min_size, coin_place,trade_type)
+                            {"id": sell_id, "pair": (market, "buy", ask1 - min_price_tick, amount, coin_place),
+                             "self": (market, "sell", ask1, amount, coin_place)})
+                if total_value < money_have and money / buy1 > amount:
+                    buy_id = api.take_order(market, "buy", buy1, amount, coin_place,trade_type)
                     if buy_id != "-1":
                         level1_buy_order_list.append(
-                            {"id": buy_id, "pair": (market, "sell", buy1 + min_price_tick, min_size, coin_place),
-                             "self": (market, "buy", buy1, min_size, coin_place)})
+                            {"id": buy_id, "pair": (market, "sell", buy1 + min_price_tick, amount, coin_place),
+                             "self": (market, "buy", buy1, amount, coin_place)})
                 if buy_id == "-1" and sell_id == "-1":
                     need_cancel = True
                     continue
@@ -1170,7 +1171,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
     if "btc" in _coin:
         level_one(mutex2,api,bidirection,partition,_money,_coin,min_size,money_have,coin_place,trade_type)
     else:
-        trade_mining(mutex2,api,bidirection,partition,_money,_coin,min_size,money_have,coin_place,trade_type)
+        level_one(mutex2,api,bidirection,partition,_money,_coin,min_size,money_have,coin_place,trade_type)
 
 
 def load_record():

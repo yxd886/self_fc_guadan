@@ -882,12 +882,12 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
         mutex2.acquire()
         counter = global_counter
         mutex2.release()
+        amount2=amount1=0
         if id1 != "-1":
-            amount = api.filled_amount(market, id1)
-            counter += amount * mining_price
+            amount1 = api.filled_amount(market, id1)
         if id2 != "-1":
-            amount = api.filled_amount(market, id2)
-            counter += amount * mining_price
+            amount2 = api.filled_amount(market, id2)
+        counter += (amount1+amount2) * mining_price/2
         mutex2.acquire()
         global_counter=counter
         mutex2.release()

@@ -952,11 +952,11 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                     if amount > min_size:
                         id1 = api.take_order(market, "buy", mining_price, amount, coin_place, trade_type)
                         id2 = api.take_order(market, "sell", mining_price, amount, coin_place, trade_type)
+                        api.cancel_all_pending_order(market, trade_type, [id1, id2])
                     start=time.time()
                     mutex2.acquire()
                     global_list.append((mining_price,id1,id2))
                     mutex2.release()
-                    api.cancel_all_pending_order(market, trade_type,[id1,id2])
                     print("start thread:",time.time()-start)
 
 

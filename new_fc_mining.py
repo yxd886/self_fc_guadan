@@ -778,7 +778,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
             try:
                 now  = datetime.datetime.now()
                 hour = now.hour
-                if False and no_force:
+                if True and no_force:
                     no_force=False
                     force_trade(api,_money,_coin,coin_place,trade_type,mutex2)
 

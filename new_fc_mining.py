@@ -888,7 +888,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
             local_list = copy.deepcopy(global_list)
             global_list=list()
             mutex2.release()
-            if len(local_list>0):
+            if len(local_list)>0:
                 for item in local_list:
                     mining_price = item[0]
                     id1=item[1]

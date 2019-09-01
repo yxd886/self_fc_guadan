@@ -155,20 +155,20 @@ class DataAPI():
         """create order"""
         return self.signed_request(POST, self.http_orders, **payload)
 
-    def buy(self, symbol, price, amount,exchange="main",account_type=None):
+    def buy(self, symbol, price, amount,exchange="main",account_type=None,type='limit'):
         """buy someting"""
         if account_type=="margin":
-            return self.create_order(symbol=symbol, side='buy', type='limit', price=str(price), amount=amount,exchange=exchange,account_type=account_type)
+            return self.create_order(symbol=symbol, side='buy', type=type, price=str(price), amount=amount,exchange=exchange,account_type=account_type)
         else:
-            return self.create_order(symbol=symbol, side='buy', type='limit', price=str(price), amount=amount,
+            return self.create_order(symbol=symbol, side='buy', type=type, price=str(price), amount=amount,
                                      exchange=exchange)
 
-    def sell(self, symbol, price, amount,exchange="main",account_type=None):
+    def sell(self, symbol, price, amount,exchange="main",account_type=None,type='limit'):
         """sell someting"""
         if account_type == "margin":
-            return self.create_order(symbol=symbol, side='sell', type='limit', price=str(price), amount=amount,exchange=exchange,account_type=account_type)
+            return self.create_order(symbol=symbol, side='sell', type=type, price=str(price), amount=amount,exchange=exchange,account_type=account_type)
         else:
-            return self.create_order(symbol=symbol, side='sell', type='limit', price=str(price), amount=amount,
+            return self.create_order(symbol=symbol, side='sell', type=type, price=str(price), amount=amount,
                                      exchange=exchange)
 
     def get_order(self, order_id):
@@ -267,7 +267,7 @@ class fcoin_api:
         c = (c + "0" * n)[:n]  # 如论传入的函数有几位小数，在字符串后面都添加n为小数0
         return ".".join([a, c])
 
-    def take_order(self, market, direction, price, size,place="main",account_type=None):
+    def take_order(self, market, direction, price, size,place="main",account_type=None,type="limit"):
         while True:
             size = self.get_two_float(size,self.amount_decimal[market])
             price=self.get_two_float(price,self.price_decimal[market])
@@ -275,14 +275,14 @@ class fcoin_api:
             #print(price)
             if direction == "buy":
                 if account_type=="margin":
-                    obj = self._api.buy(symbol=market, price=price, amount=size,exchange=place,account_type=account_type)
+                    obj = self._api.buy(symbol=market, price=price, amount=size,exchange=place,account_type=account_type,type=type)
                 else:
-                    obj = self._api.buy(symbol=market, price=price, amount=size, exchange=place)
+                    obj = self._api.buy(symbol=market, price=price, amount=size, exchange=place,type=type)
             else:
                 if account_type=="margin":
-                    obj = self._api.sell(symbol=market, price=price, amount=size,exchange=place,account_type=account_type)
+                    obj = self._api.sell(symbol=market, price=price, amount=size,exchange=place,account_type=account_type,type=type)
                 else:
-                    obj = self._api.sell(symbol=market, price=price, amount=size, exchange=place)
+                    obj = self._api.sell(symbol=market, price=price, amount=size, exchange=place,type=type)
             #print(obj)
             if obj:
                 break

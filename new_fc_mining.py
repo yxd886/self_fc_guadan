@@ -904,9 +904,16 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
 
         while True:
             try:
+                start=time.time()
                 api.cancel_all_pending_order(market, trade_type)
+                print("cancel_order:",time.time()-start)
+                start=time.time()
                 money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
+                print("get_available_balance:",time.time()-start)
+                start=time.time()
                 buy1, buy1_amount, ask1, ask1_amount, average = api.get_ticker(market)
+                print("get_ticker:",time.time()-start)
+                start=time.time()
                 current_money = money + freez_money + (coin + freez_coin) * buy1
                 print("money_loss:",init_money-current_money)
                 mutex2.acquire()
@@ -923,12 +930,17 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                     api.take_order(market, "sell", buy1, amount, coin_place, trade_type)
                 else:
                     buy1, buy1_amount, ask1, ask1_amount, average = api.get_ticker(market)
+                    print("get_ticker2:", time.time() - start)
+                    start = time.time()
                     mining_price = ask1 if ask1_amount < buy1_amount else buy1
                     amount = min(coin, money / mining_price)
                     id1=id2="-1"
                     if amount > min_size:
+
                         id1 = api.take_order(market, "buy", mining_price, amount, coin_place, trade_type)
                         id2 = api.take_order(market, "sell", mining_price, amount, coin_place, trade_type)
+                        print("take_order:", time.time() - start)
+                        start = time.time()
                     thread = threading.Thread(target=count_amount, args=(api,market,mining_price,id1,id2,mutex2))
                     thread.setDaemon(True)
                     thread.start()
@@ -1171,7 +1183,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
     if "btc" in _coin:
         level_one(mutex2,api,bidirection,partition,_money,_coin,min_size,money_have,coin_place,trade_type)
     else:
-        level_one(mutex2,api,bidirection,partition,_money,_coin,min_size,money_have,coin_place,trade_type)
+        trade_mining(mutex2,api,bidirection,partition,_money,_coin,min_size,money_have,coin_place,trade_type)
 
 
 def load_record():

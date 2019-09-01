@@ -894,7 +894,6 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
 
 
     def force_trade(api,_money, _coin, coin_place,trade_type,mutex2):
-        global global_counter
         market =_coin+_money
         buy1, buy1_amount, ask1, ask1_amount, average = api.get_ticker(market)
         amount_need = average*24*60
@@ -902,6 +901,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
         buy1, buy1_amount, ask1, ask1_amount, average = api.get_ticker(market)
         init_money = money + freez_money + (coin + freez_coin) * buy1
         api.cancel_all_pending_order(market, trade_type)
+        counter=0
 
         while True:
             try:

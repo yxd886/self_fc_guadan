@@ -950,9 +950,10 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                     amount = min(coin, money / mining_price)
                     id1=id2="-1"
                     if amount > min_size:
-                        id1 = api.take_order(market, "buy", mining_price, amount, coin_place, trade_type,"ioc")
-                        id2 = api.take_order(market, "sell", mining_price, amount, coin_place, trade_type,"ioc")
-                        #api.cancel_all_pending_order(market, trade_type, [id1, id2])
+                        id1 = api.take_order(market, "buy", mining_price, amount, coin_place, trade_type)
+                        id2 = api.take_order(market, "sell", mining_price, amount, coin_place, trade_type)
+                    else:
+                        api.cancel_all_pending_order(market,trade_type)
                     start=time.time()
                     mutex2.acquire()
                     global_list.append((mining_price,id1,id2))

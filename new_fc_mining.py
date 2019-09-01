@@ -901,11 +901,11 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
         money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
         buy1, buy1_amount, ask1, ask1_amount, average = api.get_ticker(market)
         init_money = money + freez_money + (coin + freez_coin) * buy1
+        api.cancel_all_pending_order(market, trade_type)
 
         while True:
             try:
                 start=time.time()
-                api.cancel_all_pending_order(market, trade_type)
                 print("cancel_order:",time.time()-start)
                 start=time.time()
                 money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
@@ -924,10 +924,13 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                     return
                 if money / (coin * buy1 + money) > 0.8:
                     amount = (money - (coin * buy1 + money) / 2) / ask1
-                    api.take_order(market, "buy", ask1, amount, coin_place, trade_type)
+                    id=api.take_order(market, "buy", ask1, amount, coin_place, trade_type)
+                    api.cancel_all_pending_order(market, trade_type,[id])
                 elif coin * buy1 / (coin * buy1 + money) > 0.8:
                     amount = (coin * buy1 - (coin * buy1 + money) / 2) / buy1
-                    api.take_order(market, "sell", buy1, amount, coin_place, trade_type)
+                    id=api.take_order(market, "sell", buy1, amount, coin_place, trade_type)
+                    api.cancel_all_pending_order(market, trade_type,[id])
+
                 else:
                     buy1, buy1_amount, ask1, ask1_amount, average = api.get_ticker(market)
                     print("get_ticker2:", time.time() - start)
@@ -944,6 +947,8 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                     thread = threading.Thread(target=count_amount, args=(api,market,mining_price,id1,id2,mutex2))
                     thread.setDaemon(True)
                     thread.start()
+                    api.cancel_all_pending_order(market, trade_type,[id1,id2])
+
 
             except Exception as ex:
                 print(sys.stderr, 'error: ', ex)

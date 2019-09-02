@@ -908,8 +908,27 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
             except Exception as ex:
                 print(sys.stderr, 'error: ', ex)
 
-
+    def pingcang(api,_money, _coin, coin_place,trade_type,loss):
+        market = _coin+_money
+        money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
+        buy1, buy1_amount, ask1, ask1_amount, average = api.get_ticker(market)
+        if loss < 0:
+            ask_bound = buy1
+        else:
+            ask_bound = loss / coin + buy1
+        while True:
+            time.sleep(2)
+            money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
+            if coin < min_size:
+                return
+            buy1, buy1_amount, ask1, ask1_amount, average = api.get_ticker(market)
+            print("trade_pair:", market, "buy1_amount:", buy1_amount, "buy1:", buy1)
+            if buy1 >= ask_bound:
+                print("trade_pair:", market, "take_order,price:", buy1, "amount:", min(buy1_amount, coin))
+                api.take_order(market, "sell", buy1, min(buy1_amount, coin), coin_place, trade_type, "ioc")
     def force_trade(api,_money, _coin, coin_place,trade_type,mutex2):
+        pingcang(api, _money, _coin, coin_place, trade_type, 30)
+        return
         global global_counter,global_list
         market =_coin+_money
         buy1, buy1_amount, ask1, ask1_amount, average = api.get_ticker(market)
@@ -944,20 +963,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                 mutex2.release()
                 print("trade_pair:",market,"counter/target:",local_counter,"/",amount_need)
                 if local_counter>amount_need:
-                    if money_loss<0:
-                        ask_bound = buy1
-                    else:
-                        ask_bound = money_loss/coin+buy1
-                    while True:
-                        time.sleep(2)
-                        money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
-                        if coin<min_size:
-                            break
-                        buy1, buy1_amount, ask1, ask1_amount, average = api.get_ticker(market)
-                        print("trade_pair:",market,"buy1_amount:",buy1_amount,"buy1:",buy1)
-                        if buy1>=ask_bound:
-                            print("trade_pair:", market,"take_order,price:",buy1,"amount:",min(buy1_amount,coin))
-                            api.take_order(market, "sell", buy1, min(buy1_amount,coin), coin_place, trade_type,"ioc")
+                    pingcang(api,_money, _coin, coin_place,trade_type,money_loss)
                     return
                 if money / (coin * buy1 + money) > 0.8:
                     amount = (money - (coin * buy1 + money) / 2) / ask1

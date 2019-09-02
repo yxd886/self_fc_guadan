@@ -37,7 +37,7 @@ def ping(ws):
     while True:
         current_time = int(time.time())
         ws.send({"cmd":"ping","args":[current_time],"id":"11111"})
-        time.sleep(30)
+        time.sleep(5)
 
 class DataAPI():
     def __init__(self, key='', secret=''):

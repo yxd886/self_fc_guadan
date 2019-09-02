@@ -922,7 +922,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
             if coin < min_size:
                 return
             buy1, buy1_amount, ask1, ask1_amount, average = api.get_ticker(market)
-            print("trade_pair:", market, "buy1_amount:", buy1_amount, "buy1:", buy1)
+            print("trade_pair:", market, "buy1_amount:", buy1_amount, "buy1:", buy1,"ask_bound:",ask_bound)
             if buy1 >= ask_bound:
                 print("trade_pair:", market, "take_order,price:", buy1, "amount:", min(buy1_amount, coin))
                 api.take_order(market, "sell", buy1, min(buy1_amount, coin), coin_place, trade_type, "ioc")

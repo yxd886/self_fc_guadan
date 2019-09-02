@@ -143,7 +143,7 @@ class DataAPI():
         return js
 
     def get_ticker(self, symbol):
-        arg = {"cmd":"sub","args":["ticker."+symbol]}
+        arg = {"cmd":"sub","args":["ticker."+symbol],"id":"11111"}
         self.ws.send(arg)
         return self.ws.recv()
 

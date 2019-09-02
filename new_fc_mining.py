@@ -892,8 +892,17 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                 if len(local_list)>0:
                     for item in local_list:
                         mining_price = item[0]
-                        id1=item[1]
-                        id2 = item[2]
+                        amount =item[1]
+                        coin_place = item[2]
+                        trade_type = item[3]
+                        #id1=item[1]
+                        #id2 = item[2]
+                        id1 = id2 = "-1"
+                        if amount > min_size:
+                            id1 = api.take_order(market, "buy", mining_price, amount, coin_place, trade_type)
+                            id2 = api.take_order(market, "sell", mining_price, amount, coin_place, trade_type)
+                        else:
+                            api.cancel_all_pending_order(market, trade_type)
                         amount2=amount1=0
                         if id1 != "-1":
                             amount1 = api.filled_amount(market, id1)
@@ -954,15 +963,9 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                 else:
                     mining_price = ask1 if ask1_amount < buy1_amount else buy1
                     amount = min(coin, money / mining_price)
-                    id1=id2="-1"
-                    if amount > min_size:
-                        id1 = api.take_order(market, "buy", mining_price, amount, coin_place, trade_type)
-                        id2 = api.take_order(market, "sell", mining_price, amount, coin_place, trade_type)
-                    else:
-                        api.cancel_all_pending_order(market,trade_type)
                     start=time.time()
                     mutex2.acquire()
-                    global_list.append((mining_price,id1,id2))
+                    global_list.append((mining_price, amount, coin_place, trade_type))
                     mutex2.release()
                     print("start thread:",time.time()-start)
 

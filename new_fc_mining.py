@@ -881,27 +881,30 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
         global global_counter,global_list
         import copy
         while True:
-            time.sleep(0.1)
-            local_list=list()
-            mutex2.acquire()
-            counter = global_counter
-            local_list = copy.deepcopy(global_list)
-            global_list=list()
-            mutex2.release()
-            if len(local_list)>0:
-                for item in local_list:
-                    mining_price = item[0]
-                    id1=item[1]
-                    id2 = item[2]
-                    amount2=amount1=0
-                    if id1 != "-1":
-                        amount1 = api.filled_amount(market, id1)
-                    if id2 != "-1":
-                        amount2 = api.filled_amount(market, id2)
-                    counter += (amount1+amount2) * mining_price/2
-                    mutex2.acquire()
-                    global_counter=counter
-                    mutex2.release()
+            try:
+                time.sleep(0.1)
+                local_list=list()
+                mutex2.acquire()
+                counter = global_counter
+                local_list = copy.deepcopy(global_list)
+                global_list=list()
+                mutex2.release()
+                if len(local_list)>0:
+                    for item in local_list:
+                        mining_price = item[0]
+                        id1=item[1]
+                        id2 = item[2]
+                        amount2=amount1=0
+                        if id1 != "-1":
+                            amount1 = api.filled_amount(market, id1)
+                        if id2 != "-1":
+                            amount2 = api.filled_amount(market, id2)
+                        counter += (amount1+amount2) * mining_price/2
+                        mutex2.acquire()
+                        global_counter=counter
+                        mutex2.release()
+            except:
+                pass
 
 
     def force_trade(api,_money, _coin, coin_place,trade_type,mutex2):

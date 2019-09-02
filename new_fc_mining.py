@@ -930,7 +930,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
             except:
                 pass
     def force_trade(mutex2,api,bidirection,partition,_money,_coin,min_size,money_have,coin_place,trade_type):
-        pingcang(api, _money, _coin, coin_place, trade_type, 30)
+        pingcang(api, _money, _coin, coin_place, trade_type, 130)
         return
         global global_counter,global_list
         market =_coin+_money

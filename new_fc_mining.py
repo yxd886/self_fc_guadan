@@ -908,6 +908,8 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                             amount1 = api.filled_amount(market, id1)
                         if id2 != "-1":
                             amount2 = api.filled_amount(market, id2)
+                        if id1=="-1" or id2=="-1":
+                            api.cancel_all_pending_order(market, trade_type)
                         counter += (amount1+amount2) * mining_price/2
                         mutex2.acquire()
                         global_counter=counter

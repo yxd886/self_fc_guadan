@@ -903,8 +903,8 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                         mutex2.acquire()
                         global_counter=counter
                         mutex2.release()
-            except:
-                pass
+            except Exception as ex:
+                print(sys.stderr, 'error: ', ex)
 
 
     def force_trade(api,_money, _coin, coin_place,trade_type,mutex2):
@@ -957,9 +957,9 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                     id1=id2="-1"
                     if amount > min_size:
                         id1 = api.take_order(market, "buy", mining_price, amount, coin_place, trade_type)
-                        id2 = api.take_order(market, "sell", mining_price, amount, coin_place, trade_type)
-                    else:
-                        api.cancel_all_pending_order(market,trade_type)
+                        id2 = api.take_order(market, "sell", mining_price, amount, coin_place, trade_type,"ioc")
+
+                    api.cancel_all_pending_order(market,trade_type,[id1])
                     start=time.time()
                     mutex2.acquire()
                     global_list.append((mining_price, id1, id2))

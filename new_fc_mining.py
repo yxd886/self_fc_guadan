@@ -781,6 +781,8 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                 if True and no_force:
                     no_force=False
                     force_trade(api,_money,_coin,coin_place,trade_type,mutex2)
+                    print("trade_pair:",market,"finish")
+                    sys.exit()
 
                 begin_time=time.time()
                 api.cancel_all_pending_order(market, trade_type)
@@ -924,22 +926,22 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
             try:
                 start = time.time()
                 money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
-                print("get balance:",time.time()-start)
+                #print("get balance:",time.time()-start)
                 start = time.time()
                 buy1, buy1_amount, ask1, ask1_amount, average = api.get_ticker(market)
 
                 #obj = api.get_depth(market)
-                print("get depth:",time.time()-start)
+                #print("get depth:",time.time()-start)
                 #buy1 = obj["bids"][0*2]
                 #buy1_amount = obj["bids"][0*0+1]
                 #ask1 = obj["asks"][0*2]
                 #ask1_amount = obj["asks"][0*2+1]
                 current_money = money + freez_money + (coin + freez_coin) * buy1
-                print("money_loss:",init_money-current_money)
+                print("trade_pair:",market,"money_loss:",init_money-current_money)
                 mutex2.acquire()
                 local_counter = global_counter
                 mutex2.release()
-                print("counter/target:",local_counter,"/",amount_need)
+                print("trade_pair:",market,"counter/target:",local_counter,"/",amount_need)
                 if local_counter>amount_need:
                     return
                 if money / (coin * buy1 + money) > 0.8:
@@ -960,11 +962,11 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                         id2 = api.take_order(market, "sell", mining_price, amount, coin_place, trade_type,"ioc")
 
                     api.cancel_all_pending_order(market,trade_type,[id1])
-                    start=time.time()
+                    #start=time.time()
                     mutex2.acquire()
                     global_list.append((mining_price, id1, id2))
                     mutex2.release()
-                    print("start thread:",time.time()-start)
+                    #print("start thread:",time.time()-start)
 
 
             except Exception as ex:

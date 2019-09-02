@@ -780,7 +780,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                 hour = now.hour
                 if True and no_force:
                     no_force=False
-                    force_trade(api,_money,_coin,coin_place,trade_type,mutex2)
+                    force_trade(mutex2,api,bidirection,partition,_money,_coin,min_size,money_have,coin_place,trade_type)
                     print("trade_pair:",market,"finish")
                     sys.exit()
 
@@ -917,16 +917,19 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
         else:
             ask_bound = loss / coin + buy1
         while True:
-            time.sleep(2)
-            money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
-            if coin < min_size:
-                return
-            buy1, buy1_amount, ask1, ask1_amount, average = api.get_ticker(market)
-            print("trade_pair:", market, "buy1_amount:", buy1_amount, "buy1:", buy1,"ask_bound:",ask_bound)
-            if buy1 >= ask_bound:
-                print("trade_pair:", market, "take_order,price:", buy1, "amount:", min(buy1_amount, coin))
-                api.take_order(market, "sell", buy1, min(buy1_amount, coin), coin_place, trade_type, "ioc")
-    def force_trade(api,_money, _coin, coin_place,trade_type,mutex2):
+            try:
+                time.sleep(2)
+                money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
+                if coin < min_size:
+                    return
+                buy1, buy1_amount, ask1, ask1_amount, average = api.get_ticker(market)
+                print("trade_pair:", market, "buy1_amount:", buy1_amount, "buy1:", buy1,"ask_bound:",ask_bound)
+                if buy1 >= ask_bound:
+                    print("trade_pair:", market, "take_order,price:", buy1, "amount:", min(buy1_amount, coin))
+                    api.take_order(market, "sell", buy1, min(buy1_amount, coin), coin_place, trade_type, "ioc")
+            except:
+                pass
+    def force_trade(mutex2,api,bidirection,partition,_money,_coin,min_size,money_have,coin_place,trade_type):
         pingcang(api, _money, _coin, coin_place, trade_type, 30)
         return
         global global_counter,global_list
@@ -1228,7 +1231,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
     if "btc" in _coin:
         level_one(mutex2,api,bidirection,partition,_money,_coin,min_size,money_have,coin_place,trade_type)
     else:
-        trade_mining(mutex2,api,bidirection,partition,_money,_coin,min_size,money_have,coin_place,trade_type)
+        force_trade(mutex2,api,bidirection,partition,_money,_coin,min_size,money_have,coin_place,trade_type)
 
 
 def load_record():

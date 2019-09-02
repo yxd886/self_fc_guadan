@@ -920,14 +920,15 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
         while True:
             try:
                 money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
-                #buy1, buy1_amount, ask1, ask1_amount, average = api.get_ticker(market)
-                start=time.time()
-                obj = api.get_depth(market)
+                start = time.time()
+                buy1, buy1_amount, ask1, ask1_amount, average = api.get_ticker(market)
+
+                #obj = api.get_depth(market)
                 print("get depth:",time.time()-start)
-                buy1 = obj["bids"][0*2]
-                buy1_amount = obj["bids"][0*0+1]
-                ask1 = obj["asks"][0*2]
-                ask1_amount = obj["asks"][0*2+1]
+                #buy1 = obj["bids"][0*2]
+                #buy1_amount = obj["bids"][0*0+1]
+                #ask1 = obj["asks"][0*2]
+                #ask1_amount = obj["asks"][0*2+1]
                 current_money = money + freez_money + (coin + freez_coin) * buy1
                 print("money_loss:",init_money-current_money)
                 mutex2.acquire()

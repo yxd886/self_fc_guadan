@@ -9,7 +9,7 @@ HTPBL = 'https://%s/v2/public/'
 HTORD = 'https://%s/v2/orders/'
 HTACT = 'https://%s/v2/accounts/'
 HBROK = 'https://%s/v2/broker/leveraged_accounts/'
-WS = 'wss://%S/v2/ws/'
+WS = 'wss://%s/v2/ws/'
 
 ST = 'server-time'
 SYMBOLS = 'symbols'
@@ -30,7 +30,14 @@ import requests
 import time
 import base64
 import sys
+import threading
+from websocket import create_connection
 
+def ping(ws):
+    while True:
+        current_time = int(time.time())
+        ws.send({"cmd":"ping","args":[current_time],"id":"11111"})
+        time.sleep(30)
 
 class DataAPI():
     def __init__(self, key='', secret=''):
@@ -40,11 +47,19 @@ class DataAPI():
         self.http_orders = HTORD % SERVER
         self.http_account = HTACT % SERVER
         self.http_leverage = HBROK % SERVER
+        self.ws_address = WS % SERVER
         self.key = key
         self.secret = bytes(secret,encoding = "utf8")
         self.mutex = threading.Lock()
 
         self.sem = threading.Semaphore(5)
+
+        self.ws = create_connection(self.ws_address)
+        thread = threading.Thread(target=ping, args=(
+        self.ws))
+        thread.setDaemon(True)
+        thread.start()
+
     def authorize(self, key='', secret=''):
         self.key = key
         self.secret = bytes(secret,encoding = "utf8")
@@ -127,6 +142,10 @@ class DataAPI():
         return js
 
     def get_ticker(self, symbol):
+        arg = {"cmd":"sub","args":["ticker."+symbol]}
+        self.ws.send(arg)
+        return self.ws.recv()
+
         return self.public_request(GET, self.http_market + TICKER % symbol)
 
     def get_kdata(self, freq='M1', symbol=''):
@@ -632,8 +651,11 @@ class fcoin_api:
         # print("coin_should_have:%f" % self.cell_money[index])
         return 5*(self.cell_step[index])
 
-'''
+''''
 api = fcoin_api("1","2")
-print(api.get_huobi_price("btcusdt"))
-print(api.get_ticker("btcusdt")[0])
+#print(api.get_huobi_price("btcusdt"))
+for i in range(100):
+    start=time.time()
+    print(api.get_ticker("btcusdt")[0])
+    print("time",time.time()-start)
 '''

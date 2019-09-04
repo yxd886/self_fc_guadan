@@ -934,8 +934,8 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
             except:
                 pass
     def force_trade(mutex2,api,bidirection,partition,_money,_coin,min_size,money_have,coin_place,trade_type):
-        pingcang(api, _money, _coin, coin_place, trade_type, 130)
-        return
+        #pingcang(api, _money, _coin, coin_place, trade_type, 130)
+        #return
         global global_counter,global_list
         market =_coin+_money
         buy1, buy1_amount, ask1, ask1_amount, average = api.get_ticker(market)
@@ -968,11 +968,11 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                 if local_counter>amount_need:
                     pingcang(api,_money, _coin, coin_place,trade_type,money_loss)
                     return
-                if money / (coin * buy1 + money) > 0.8:
+                if money / (coin * buy1 + money) > 0.65:
                     amount = (money - (coin * buy1 + money) / 2) / ask1
                     id=api.take_order(market, "buy", ask1, amount, coin_place, trade_type)
                     api.cancel_all_pending_order(market, trade_type,[id])
-                elif coin * buy1 / (coin * buy1 + money) > 0.8:
+                elif coin * buy1 / (coin * buy1 + money) > 0.65:
                     amount = (coin * buy1 - (coin * buy1 + money) / 2) / buy1
                     id=api.take_order(market, "sell", buy1, amount, coin_place, trade_type)
                     api.cancel_all_pending_order(market, trade_type,[id])

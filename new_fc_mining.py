@@ -908,17 +908,21 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
             except Exception as ex:
                 print(sys.stderr, 'error: ', ex)
 
-    def pingcang(api,_money, _coin, coin_place,trade_type,loss):
+    def pingcang(api,_money, _coin, coin_place,trade_type,loss,tuple=None):
         market = _coin+_money
         money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
+        if coin<min_size:
+            return
         buy1, buy1_amount, ask1, ask1_amount, average = api.get_ticker(market)
-        if loss < 0:
+        if loss <= 0:
             ask_bound = buy1
         else:
             ask_bound = loss / coin + buy1
         while True:
             try:
                 time.sleep(2)
+                if tuple!=None:
+                    print("trade_pair:", market, "counter/target:", tuple[0], "/", tuple[1])
                 money, coin, freez_money, freez_coin = api.get_available_balance(_money, _coin, trade_type)
                 if coin < min_size:
                     return
@@ -951,15 +955,11 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                 #print("get balance:",time.time()-start)
                 start = time.time()
                 buy1, buy1_amount, ask1, ask1_amount, average = api.get_ticker(market)
-
-                #obj = api.get_depth(market)
-                #print("get depth:",time.time()-start)
-                #buy1 = obj["bids"][0*2]
-                #buy1_amount = obj["bids"][0*0+1]
-                #ask1 = obj["asks"][0*2]
-                #ask1_amount = obj["asks"][0*2+1]
                 current_money = money + freez_money + (coin + freez_coin) * buy1
                 money_loss = init_money-current_money
+                if money_loss>150:
+                    pingcang(api, _money, _coin, coin_place, trade_type, 0,(local_counter,amount_need))
+                    continue
                 print("trade_pair:",market,"money_loss:",money_loss)
                 mutex2.acquire()
                 local_counter = global_counter

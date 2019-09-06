@@ -1229,7 +1229,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                 continue
 
     if "btc" in _coin:
-        level_one(mutex2,api,bidirection,partition,_money,_coin,min_size,money_have,coin_place,trade_type)
+        force_trade(mutex2,api,bidirection,partition,_money,_coin,min_size,money_have,coin_place,trade_type)
     else:
         force_trade(mutex2,api,bidirection,partition,_money,_coin,min_size,money_have,coin_place,trade_type)
 

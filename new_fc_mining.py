@@ -914,6 +914,10 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
         if coin<min_size:
             return
         buy1, buy1_amount, ask1, ask1_amount, average = api.get_ticker(market)
+        if loss==0:
+            api.take_order(market, "sell", buy1*0.9, coin, coin_place, trade_type)
+            print("stop loss!!!")
+            return
         if loss <= 0:
             ask_bound = buy1
         else:
@@ -980,16 +984,20 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                 else:
                     mining_price = ask1 if ask1_amount < buy1_amount else buy1
                     amount = min(coin, money / mining_price)
-                    id1=id2="-1"
-                    if amount > min_size:
-                        id1 = api.take_order(market, "buy", mining_price, amount, coin_place, trade_type)
-                        id2 = api.take_order(market, "sell", mining_price, amount, coin_place, trade_type,"ioc")
+                    for i in range(10):
+                        id1=id2="-1"
+                        amount = amount-i*0.1*amount
+                        if amount > min_size:
+                            id1 = api.take_order(market, "buy", mining_price, amount, coin_place, trade_type)
+                            id2 = api.take_order(market, "sell", mining_price, amount, coin_place, trade_type,"ioc")
 
-                    api.cancel_all_pending_order(market,trade_type,[id1])
-                    #start=time.time()
-                    mutex2.acquire()
-                    global_list.append((mining_price, id1, id2))
-                    mutex2.release()
+                        api.cancel_all_pending_order(market,trade_type,[id1])
+                        #start=time.time()
+                        mutex2.acquire()
+                        global_list.append((mining_price, id1, id2))
+                        mutex2.release()
+                        if id1=="-1" or id2=="-1":
+                            break
                     #print("start thread:",time.time()-start)
 
 
@@ -1034,6 +1042,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
             except:
                 pass
     def level_one(mutex2,api,bidirection,partition,_money,_coin,min_size,money_have,coin_place,trade_type="margin"):
+        swap_value = 1
         need_balance = False
         cell_num = 20
         market = _coin + _money
@@ -1065,19 +1074,18 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                 total_value = (coin + freez_coin) * buy1
                 buy_id = "-1"
                 sell_id = "-1"
-                amount =max(20/buy1,min_size)
-                if coin > amount:
-                    sell_id = api.take_order(market, "sell", ask1, amount, coin_place,trade_type)
+                if coin > min_size:
+                    sell_id = api.take_order(market, "sell", ask1, min_size, coin_place,trade_type)
                     if sell_id != "-1":
                         level1_sell_order_list.append(
-                            {"id": sell_id, "pair": (market, "buy", ask1 - min_price_tick, amount, coin_place),
-                             "self": (market, "sell", ask1, amount, coin_place)})
-                if total_value < money_have and money / buy1 > amount:
-                    buy_id = api.take_order(market, "buy", buy1, amount, coin_place,trade_type)
+                            {"id": sell_id, "pair": (market, "buy", ask1 - min_price_tick, min_size, coin_place),
+                             "self": (market, "sell", ask1, min_size, coin_place)})
+                if total_value < money_have and money / buy1 > min_size:
+                    buy_id = api.take_order(market, "buy", buy1, min_size, coin_place,trade_type)
                     if buy_id != "-1":
                         level1_buy_order_list.append(
-                            {"id": buy_id, "pair": (market, "sell", buy1 + min_price_tick, amount, coin_place),
-                             "self": (market, "buy", buy1, amount, coin_place)})
+                            {"id": buy_id, "pair": (market, "sell", buy1 + min_price_tick, min_size, coin_place),
+                             "self": (market, "buy", buy1, min_size, coin_place)})
                 if buy_id == "-1" and sell_id == "-1":
                     need_cancel = True
                     continue

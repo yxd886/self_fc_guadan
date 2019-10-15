@@ -392,6 +392,13 @@ class fcoin_api:
         for id in id_list:
             #time.sleep(0.5)
             self.cancel_order(market,id)
+    def get_all_pending_order(self,market,account_type):
+        if account_type == "main":
+            obj = self._api.list_orders(symbol=market, states="submitted,partial_filled")
+        else:
+            obj = self._api.list_orders(symbol=market, states="submitted,partial_filled", account_type=account_type)
+        obj = obj.get("data", None)
+        return obj
 
     def list_all_orders(self,market,account_type="main"):
         if account_type=="main":

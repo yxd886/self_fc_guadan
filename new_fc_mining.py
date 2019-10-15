@@ -1064,7 +1064,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                     obj = self.api.get_all_pending_order(self.market,trade_type)
                     for item in obj:
                         direction = item["side"]
-                        price = item["price"]
+                        price = float(item["price"])
                         id = item["id"]
                         if direction == "buy":
                             if price <= buy_lower1:

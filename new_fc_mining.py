@@ -1080,7 +1080,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                 sell_id = api.take_order(market, "sell", ask1, 0.005, coin_place, trade_type)
                 buy_id = api.take_order(market, "buy", buy1, 0.005, coin_place, trade_type)
                 while True:
-                    if api.is_order_complete(sell_id) or api.is_order_complete(buy_id):
+                    if api.is_order_complete(market,sell_id) or api.is_order_complete(market,buy_id):
                         break
 
             except Exception as ex:
@@ -1196,11 +1196,6 @@ def tick(load_access_key, load_access_secret, load_money, load_coin, load_pariti
 
         api = fcoin_api(access_key, access_secret)
         min_size=api.set_demical(_money, coins)
-        print("start cancel existing pending orders")
-        for market in markets:
-            time.sleep(0.1)
-            api.cancel_all_pending_order(market,account_type)
-        print("cancel pending orders completed")
         for i, market in enumerate(markets):
             time.sleep(0.1)
             thread = threading.Thread(target=buy_main_body,args=(mutex2,api,bidirection,partition,_money,coins[i],min_size[market],money_have/len(markets),coin_place_list[i],account_type))

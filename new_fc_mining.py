@@ -1079,6 +1079,8 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                 buy1 = obj["bids"][0 * 2]
                 sell_id = api.take_order(market, "sell", ask1, 0.005, coin_place, trade_type)
                 buy_id = api.take_order(market, "buy", buy1, 0.005, coin_place, trade_type)
+                if sell_id=="-1" or buy_id=="-1":
+                    continue
                 while True:
                     if api.is_order_complete(market,sell_id) or api.is_order_complete(market,buy_id):
                         break

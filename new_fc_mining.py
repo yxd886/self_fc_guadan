@@ -1055,24 +1055,11 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
         def run(self):
             while True:
                 try:
-                    obj = self.api.get_depth(self.market)
-                    buy11 = obj["bids"][10 * 2]
-                    ask11 = obj["asks"][10 * 2]
-                    buy_lower1 = buy11
-                    sell_upper1 = ask11
-
+                    time.sleep(3600)
                     obj = self.api.get_all_pending_order(self.market,trade_type)
-                    for item in obj:
-                        direction = item["side"]
-                        price = float(item["price"])
-                        id = item["id"]
-                        if direction == "buy":
-                            if price <= buy_lower1:
-                                self.api.cancel_order(self.market, id)
-                        if direction == "sell":
-                            if price >= sell_upper1:
-                                self.api.cancel_order(self.market, id)
-
+                    item =obj[0]
+                    id = item["id"]
+                    self.api.cancel_order(self.market, id)
                 except Exception as ex:
                     print(sys.stderr, 'monitor_thread: ', ex)
                     # a= input()
@@ -1090,8 +1077,11 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                 obj = api.get_depth(market)
                 ask1 = obj["asks"][0 * 2]
                 buy1 = obj["bids"][0 * 2]
-                sell_id = api.take_order(market, "sell", ask1, min_size, coin_place, trade_type)
-                buy_id = api.take_order(market, "buy", buy1, min_size, coin_place, trade_type)
+                sell_id = api.take_order(market, "sell", ask1, 0.005, coin_place, trade_type)
+                buy_id = api.take_order(market, "buy", buy1, 0.005, coin_place, trade_type)
+                while True:
+                    if api.is_order_complete(sell_id) or api.is_order_complete(buy_id):
+                        break
 
             except Exception as ex:
                 print(sys.stderr, 'in monitor: ', ex)

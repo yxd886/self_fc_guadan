@@ -1072,6 +1072,7 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
         thread = TestThread(mutex2, api, market,trade_type)
         thread.setDaemon(True)
         thread.start()
+        global_counter = time.time()
         while True:
             try:
                 obj = api.get_depth(market)
@@ -1092,9 +1093,17 @@ def buy_main_body(mutex2,api,bidirection,partition,_money,_coin,min_size,money_h
                         if api.is_order_complete(market,sell_id):
                             api.take_order(market, "buy", buy1, 0.005, coin_place, trade_type)
                             break
+                        elif time.time() - global_counter>120:
+                            api.cancel_order(market,sell_id)
+                            global_counter = time.time()
+                            break
                     elif sell_id=="-1" and buy_id!="-1":
                         if api.is_order_complete(market,buy_id):
                             api.take_order(market, "sell", ask1, 0.005, coin_place, trade_type)
+                            break
+                        elif time.time() - global_counter > 120:
+                            api.cancel_order(market, buy_id)
+                            global_counter = time.time()
                             break
 
 
